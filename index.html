@@ -9,11 +9,13 @@
     
     <style>
         :root {
-            --tg-theme-bg-color: #0f172a;
-            --tg-theme-text-color: #f8fafc;
-            --tg-theme-button-color: #38bdf8;
-            --tg-theme-button-text-color: #ffffff;
-            --tg-theme-hint-color: #94a3b8;
+            /* Telegram mavzusiga moslashuvchi ranglar */
+            --bg-color: var(--tg-theme-bg-color, #0f172a);
+            --text-color: var(--tg-theme-text-color, #f8fafc);
+            --accent-color: var(--tg-theme-button-color, #38bdf8);
+            --button-text: var(--tg-theme-button-text-color, #ffffff);
+            --hint-color: var(--tg-theme-hint-color, #94a3b8);
+            --secondary-bg: var(--tg-theme-secondary-bg-color, rgba(255, 255, 255, 0.03));
         }
 
         * {
@@ -26,21 +28,21 @@
 
         body {
             font-family: '-apple-system', BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--tg-theme-bg-color);
-            color: var(--tg-theme-text-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
             overflow: hidden;
             height: 100vh;
             display: flex;
             flex-direction: column;
         }
 
-        /* App Bar */
+        /* App Header */
         .app-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 16px;
-            background: rgba(255, 255, 255, 0.03);
+            background: var(--secondary-bg);
             backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
@@ -48,36 +50,42 @@
         .user-badge {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
         .user-avatar {
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            background: var(--tg-theme-button-color);
+            background: var(--accent-color);
+            color: var(--button-text);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
         }
 
-        /* Main Container */
-        .main-content {
+        /* SPA Tab Screens */
+        .tab-screen {
+            display: none;
             flex: 1;
-            display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 20px;
-            position: relative;
+            overflow-y: auto;
         }
 
-        /* Flashcard Arena (Tinder-style) */
+        .tab-screen.active-screen {
+            display: flex;
+        }
+
+        /* ==================== FLASHCARDS SCREEN ==================== */
         .card-container {
             width: 100%;
             max-width: 340px;
-            height: 400px;
+            height: 380px;
             position: relative;
             perspective: 1000px;
         }
@@ -87,7 +95,7 @@
             height: 100%;
             position: absolute;
             transform-style: preserve-3d;
-            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
             cursor: pointer;
         }
 
@@ -107,7 +115,7 @@
             justify-content: space-between;
             align-items: center;
             text-align: center;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
@@ -123,38 +131,23 @@
         }
 
         .card-tag {
-            font-size: 12px;
+            font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 1.5px;
-            color: var(--tg-theme-button-color);
+            color: var(--accent-color);
             background: rgba(56, 189, 248, 0.1);
             padding: 4px 12px;
             border-radius: 20px;
         }
 
-        .word-title {
-            font-size: 32px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
+        .word-title { font-size: 30px; font-weight: 700; }
+        .word-definition { font-size: 14px; color: var(--hint-color); line-height: 1.5; }
+        .word-translation { font-size: 26px; font-weight: 600; color: #10b981; }
 
-        .word-definition {
-            font-size: 15px;
-            color: var(--tg-theme-hint-color);
-            line-height: 1.5;
-        }
-
-        .word-translation {
-            font-size: 26px;
-            font-weight: 600;
-            color: #10b981;
-        }
-
-        /* Controls */
         .action-buttons {
             display: flex;
-            gap: 20px;
-            margin-top: 30px;
+            gap: 16px;
+            margin-top: 24px;
             width: 100%;
             max-width: 340px;
         }
@@ -173,24 +166,95 @@
             gap: 8px;
             transition: transform 0.1s;
         }
+        .btn:active { transform: scale(0.95); }
+        .btn-dont { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+        .btn-know { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
 
-        .btn:active {
-            transform: scale(0.96);
+        /* ==================== QUIZ SCREEN ==================== */
+        .quiz-box { width: 100%; max-width: 340px; text-align: center; }
+        .quiz-question { font-size: 18px; margin-bottom: 20px; color: var(--hint-color); }
+        .quiz-word { font-size: 28px; color: var(--text-color); margin-bottom: 30px; font-weight: bold; }
+        .quiz-options { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+        .option-btn {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--text-color);
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 16px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .option-btn:active { background: rgba(255,255,255,0.1); }
+
+        /* ==================== AI TEACHER SCREEN ==================== */
+        .chat-container {
+            width: 100%;
+            max-width: 400px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .msg-ai { background: rgba(255,255,255,0.06); align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid rgba(255,255,255,0.05); }
+        .msg-user { background: var(--accent-color); color: var(--button-text); align-self: flex-end; border-bottom-right-radius: 4px; }
+        
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+            padding: 10px 0;
+        }
+        .chat-input {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 12px;
+            color: var(--text-color);
+            outline: none;
+        }
+        .btn-send {
+            background: var(--accent-color);
+            color: var(--button-text);
+            border: none;
+            padding: 0 16px;
+            border-radius: 12px;
+            cursor: pointer;
         }
 
-        .btn-dont {
-            background: rgba(239, 68, 68, 0.15);
-            color: #ef4444;
-            border: 1px solid rgba(239, 68, 68, 0.2);
+        /* ==================== STATS SCREEN ==================== */
+        .stats-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 20px;
+            padding: 20px;
+            width: 100%;
+            max-width: 340px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
+        .stat-row { display: flex; justify-content: space-between; align-items: center; }
+        .progress-bar-bg { width: 100%; background: rgba(255,255,255,0.08); height: 8px; border-radius: 4px; margin-top: 6px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: var(--accent-color); width: 0%; transition: width 0.5s; }
 
-        .btn-know {
-            background: rgba(16, 185, 129, 0.15);
-            color: #10b981;
-            border: 1px solid rgba(16, 185, 129, 0.2);
-        }
-
-        /* Bottom Nav Tab */
+        /* Bottom Nav Tab Bar */
         .nav-tabs {
             display: flex;
             background: rgba(255, 255, 255, 0.02);
@@ -198,7 +262,6 @@
             padding: 10px 0;
             padding-bottom: calc(10px + env(safe-area-inset-bottom));
         }
-
         .tab-item {
             flex: 1;
             display: flex;
@@ -206,49 +269,45 @@
             align-items: center;
             gap: 4px;
             font-size: 11px;
-            color: var(--tg-theme-hint-color);
+            color: var(--hint-color);
             cursor: pointer;
+            transition: color 0.2s;
         }
-
-        .tab-item.active {
-            color: var(--tg-theme-button-color);
-        }
-
-        .tab-item i {
-            font-size: 20px;
-        }
+        .tab-item.active { color: var(--accent-color); }
+        .tab-item i { font-size: 20px; }
     </style>
 </head>
 <body>
 
+    <!-- Global App Header -->
     <header class="app-header">
         <div class="user-badge">
             <div class="user-avatar" id="user-avatar">U</div>
             <span id="user-name">Foydalanuvchi</span>
         </div>
         <div>
-            <span style="color: #eab308;"><i class="fa-solid fa-fire"></i> <span id="streak-val">5</span> kun</span>
+            <span style="color: #eab308; font-weight: 600;"><i class="fa-solid fa-fire"></i> <span id="streak-val">0</span> kun</span>
         </div>
     </header>
 
-    <main class="main-content">
+    <!-- 1. FLASHCARDS SCREEN -->
+    <main id="screen-flashcards" class="tab-screen active-screen">
         <div class="card-container">
             <div class="flashcard" id="active-card" onclick="flipCard()">
                 <div class="card-face card-front">
                     <span class="card-tag">English</span>
                     <h2 class="word-title" id="card-word">Resilience</h2>
                     <p class="word-definition" id="card-def">The capacity to recover quickly from difficulties.</p>
-                    <span style="font-size: 13px; color: var(--tg-theme-hint-color);"><i class="fa-solid fa-rotate"></i> Bosib tarjimani ko'ring</span>
+                    <span style="font-size: 12px; color: var(--hint-color);"><i class="fa-solid fa-rotate"></i> Tarjimani ko'rish uchun bosing</span>
                 </div>
                 <div class="card-face card-back">
                     <span class="card-tag">O'zbekcha</span>
                     <h2 class="word-translation" id="card-trans">Matonat / Chidamlilik</h2>
-                    <p style="font-size: 14px; rgba(255,255,255,0.6)">Ushbu so'zni eslab qoldingizmi?</p>
-                    <div style="width: 100%;"></div>
+                    <p style="font-size: 13px; color: var(--hint-color);">Eslab qola oldingizmi?</p>
+                    <div></div>
                 </div>
             </div>
         </div>
-
         <div class="action-buttons">
             <button class="btn btn-dont" onclick="handleCardAction('dont')">
                 <i class="fa-solid fa-xmark"></i> Bilmadim
@@ -259,130 +318,197 @@
         </div>
     </main>
 
+    <!-- 2. QUIZ SCREEN -->
+    <main id="screen-quiz" class="tab-screen">
+        <div class="quiz-box">
+            <p class="quiz-question">Ushbu so'zning to'g'ri tarjimasini toping:</p>
+            <div class="quiz-word" id="quiz-question-word">Resilience</div>
+            <div class="quiz-options" id="quiz-options-container">
+                <!-- Variantlar dinamik ravishda JS orqali qo'shiladi -->
+            </div>
+        </div>
+    </main>
+
+    <!-- 3. AI TEACHER SCREEN -->
+    <main id="screen-ai" class="tab-screen">
+        <div class="chat-container">
+            <div class="chat-messages" id="chat-messages-box">
+                <div class="message msg-ai">Hello! I am your AI Teacher. Write anything in English, and I will correct your mistakes and chat with you! 🧠</div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" class="chat-input" id="chat-input-field" placeholder="Inglizcha biror narsa yozing...">
+                <button class="btn-send" onclick="sendAiMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </main>
+
+    <!-- 4. STATS SCREEN -->
+    <main id="screen-stats" class="tab-screen">
+        <div class="stats-card">
+            <h3>Sizning Ko'rsatkichlaringiz</h3>
+            <hr style="opacity: 0.1">
+            <div class="stat-row">
+                <span><i class="fa-solid fa-trophy" style="color:#eab308"></i> Daraja (Level):</span>
+                <strong id="stats-level">1-lvl</strong>
+            </div>
+            <div>
+                <div class="stat-row" style="font-size: 13px; color: var(--hint-color);">
+                    <span>Progress: <span id="stats-xp">0</span> XP</span>
+                    <span>Keyingi Level</span>
+                </div>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" id="xp-progress-fill"></div></div>
+            </div>
+            <div class="stat-row">
+                <span><i class="fa-solid fa-coins" style="color:#eab308"></i> Tangalar:</span>
+                <strong id="stats-coins">0 coins</strong>
+            </div>
+            <div class="stat-row">
+                <span><i class="fa-solid fa-book"></i> Jami so'zlar:</span>
+                <strong id="stats-total-words">0 ta</strong>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation Bar -->
     <nav class="nav-tabs">
-        <div class="tab-item active">
+        <div class="tab-item active" onclick="switchTab(this, 'screen-flashcards')">
             <i class="fa-solid fa-layer-group"></i>
             <span>Yodlash</span>
         </div>
-        <div class="tab-item" onclick="TgAlert('Tez kunda: Kunlik test tizimi Mini Appga ko\'chiriladi!')">
+        <div class="tab-item" onclick="switchTab(this, 'screen-quiz'); loadQuizData();">
             <i class="fa-solid fa-brain"></i>
             <span>Test</span>
         </div>
-        <div class="tab-item" onclick="TgAlert('Tez kunda: AI Teacher interfeysi shu yerda bo\'ladi!')">
+        <div class="tab-item" onclick="switchTab(this, 'screen-ai')">
             <i class="fa-solid fa-robot"></i>
             <span>AI Teacher</span>
         </div>
-        <div class="tab-item" onclick="TgAlert('Tez kunda: Statistika grafiklarni ko\'ra olasiz!')">
+        <div class="tab-item" onclick="switchTab(this, 'screen-stats'); loadUserStats();">
             <i class="fa-solid fa-chart-simple"></i>
             <span>Statistika</span>
         </div>
     </nav>
 
     <script>
-        // Telegram WebApp SDK-ni ishga tushiramiz
         const tg = window.Telegram.WebApp;
         tg.ready();
-        tg.expand(); // Oynani to'liq ekranga ochish
+        tg.expand();
 
-        // API manzili (Buni o'zingizning FastAPI serveringiz havolasiga almashtirasiz)
+        // Railway orqali ishlayotgan FastAPI orqa foni
         const API_BASE_URL = "https://yodlacards-ai-bot-production.up.railway.app"; 
+        const user = tg.initDataUnsafe?.user || { id: 12345, first_name: "Alisher" }; // Fallback for dev
 
-        // Foydalanuvchi ma'lumotlarini Telegram SDK orqali o'qish
-        const user = tg.initDataUnsafe?.user;
+        // Setup User UI
         if (user) {
             document.getElementById('user-name').innerText = user.first_name;
-            if (user.username) {
-                document.getElementById('user-avatar').innerText = user.first_name.charAt(0).toUpperCase();
-            }
+            document.getElementById('user-avatar').innerText = user.first_name.charAt(0).toUpperCase();
         }
 
-        // Flesh-kartalar massivi (API dan kelguncha fallback ma'lumot)
+        // --- GLOBAL STATE ---
         let flashcards = [
-            {word: "Resilience", translation: "Matonat", definition: "The capacity to recover quickly from difficulties."},
-            {word: "Ubiquitous", translation: "Hamma yerda mavjud", definition: "Present, appearing, or found everywhere."},
-            {word: "Eloquent", translation: "Fasih, chechan", definition: "Fluent or persuasive in speaking or writing."}
+            {id: 1, english: "Resilience", uzbek: "Matonat", ai_info: "The capacity to recover quickly from difficulties."},
+            {id: 2, english: "Ubiquitous", uzbek: "Hamma yerda mavjud", ai_info: "Present, appearing, or found everywhere."},
+            {id: 3, english: "Eloquent", uzbek: "Fasih, chechan", ai_info: "Fluent or persuasive in speaking or writing."}
         ];
         let currentIndex = 0;
 
-        // Kartani aylantirish (Flip)
+        // --- TAB SWITCHER (SPA) ---
+        function switchTab(tabElement, screenId) {
+            tg.HapticFeedback.impactOccurred('light');
+            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-screen').forEach(s => s.classList.remove('active-screen'));
+            
+            tabElement.classList.add('active');
+            document.getElementById(screenId).classList.add('active-screen');
+        }
+
+        // --- TAB 1: FLASHCARDS LOGIC ---
         function flipCard() {
             document.getElementById('active-card').classList.toggle('flipped');
-            // Telegram tebranish (Haptic Feedback) effekti
             tg.HapticFeedback.impactOccurred('light');
         }
 
-        // Bildim / Bilmadim tugmalari bosilganda
         function handleCardAction(action) {
-            // Kuchliroq haptic feedback (Muvaffaqiyat yoki ogohlantirish)
             if (action === 'know') {
                 tg.HapticFeedback.notificationOccurred('success');
             } else {
                 tg.HapticFeedback.notificationOccurred('warning');
             }
 
-            // Kartani joyiga qaytarish va keyingi so'zga o'tish animatsiyasi
             const cardEl = document.getElementById('active-card');
             cardEl.style.transform = action === 'know' ? 'translateX(200px) rotate(20deg)' : 'translateX(-200px) rotate(-20deg)';
             cardEl.style.opacity = '0';
 
             setTimeout(() => {
-                currentIndex++;
-                if (currentIndex >= flashcards.length) {
-                    currentIndex = 0; // Tsikl
+                // Backendga natijani yuborish (Sizning main.py dagi know/dont mexanizmiga moslashtirilgan)
+                if(user?.id) {
+                    fetch(`${API_BASE_URL}/api/flashcard/action`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ user_id: user.id, card_id: flashcards[currentIndex].id, action: action })
+                    }).catch(e => console.log(e));
                 }
+
+                currentIndex = (currentIndex + 1) % flashcards.length;
                 
-                // Yangi ma'lumotlarni o'rnatish
-                document.getElementById('card-word').innerText = flashcards[currentIndex].word;
-                document.getElementById('card-def').innerText = flashcards[currentIndex].definition;
-                document.getElementById('card-trans').innerText = flashcards[currentIndex].translation;
+                // UI yangilash
+                document.getElementById('card-word').innerText = flashcards[currentIndex].english;
+                document.getElementById('card-def').innerText = flashcards[currentIndex].ai_info;
+                document.getElementById('card-trans').innerText = flashcards[currentIndex].uzbek;
                 
-                // Kartani asliga qaytarish
                 cardEl.classList.remove('flipped');
                 cardEl.style.transform = 'none';
                 cardEl.style.opacity = '1';
             }, 300);
+        }
 
-            // API ga ma'lumot yuborish (Foydalanuvchi bildimi yoki yo'q, bazaga saqlash uchun)
-            if (user?.id) {
-                fetch(`${API_BASE_URL}/api/card/action`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        user_id: user.id,
-                        word: flashcards[currentIndex].word,
-                        status: action
-                    })
-                }).catch(err => console.log("API xatolik:", err));
+        // --- TAB 2: QUIZ LOGIC ---
+        let currentQuizCorrect = "";
+        function loadQuizData() {
+            // Agar bazada so'z yetarli bo'lsa, backenddan tasodifiy olishi ham mumkin
+            const correctWord = flashcards[Math.floor(Math.random() * flashcards.length)];
+            currentQuizCorrect = correctWord.uzbek;
+            
+            document.getElementById('quiz-question-word').innerText = correctWord.english;
+            
+            // Shunchaki test variantlarini aralashtirish
+            let options = [correctWord.uzbek];
+            flashcards.forEach(w => {
+                if(w.uzbek !== correctWord.uzbek && options.length < 4) options.push(w.uzbek);
+            });
+            options.sort(() => Math.random() - 0.5);
+
+            const container = document.getElementById('quiz-options-container');
+            container.innerHTML = "";
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn";
+                btn.innerText = opt;
+                btn.onclick = () => checkQuizAnswer(opt, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkQuizAnswer(selected, buttonEl) {
+            if (selected === currentQuizCorrect) {
+                tg.HapticFeedback.notificationOccurred('success');
+                buttonEl.style.background = "rgba(16, 185, 129, 0.2)";
+                buttonEl.style.borderColor = "#10b981";
+                setTimeout(() => { loadQuizData(); }, 800);
+            } else {
+                tg.HapticFeedback.notificationOccurred('error');
+                buttonEl.style.background = "rgba(239, 68, 68, 0.2)";
+                buttonEl.style.borderColor = "#ef4444";
             }
         }
 
-        // Telegram chiroyli oynasi orqali ogohlantirish chiqarish
-        function TgAlert(text) {
-            tg.showAlert(text);
-        }
+        // --- TAB 3: AI TEACHER INTERACTION ---
+        async function sendAiMessage() {
+            const inputEl = document.getElementById('chat-input-field');
+            const text = inputEl.value.trim();
+            if(!text) return;
 
-        // FastAPI Backendingizdan real ma'lumotlarni yuklab olish funksiyasi
-        async function loadUserCards() {
-            if (user?.id) {
-                try {
-                    const response = await fetch(`${API_BASE_URL}/api/user/${user.id}/cards`);
-                    const data = await response.json();
-                    if (data.status === 'success' && data.cards.length > 0) {
-                        flashcards = data.cards;
-                        // Birinchi kartani yangilash
-                        document.getElementById('card-word').innerText = flashcards[0].word;
-                        document.getElementById('card-def').innerText = flashcards[0].definition;
-                        document.getElementById('card-trans').innerText = flashcards[0].translation;
-                    }
-                } catch (error) {
-                    console.log("Bazadan ma'lumot olishda xato:", error);
-                }
-            }
-        }
+            tg.HapticFeedback.impactOccurred('medium');
+            inputEl.value = "";
 
-        // Sahifa yuklanganda bazadan kartalarni tortish
-        window.onload = loadUserCards;
-    </script>
-</body>
-  </html>
-  
+            const chat
