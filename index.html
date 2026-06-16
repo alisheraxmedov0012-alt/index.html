@@ -140,9 +140,9 @@
             border-radius: 20px;
         }
 
-        .word-title { font-size: 30px; font-weight: 700; }
-        .word-definition { font-size: 14px; color: var(--hint-color); line-height: 1.5; }
-        .word-translation { font-size: 26px; font-weight: 600; color: #10b981; }
+        .word-title { font-size: 30px; font-weight: 700; word-break: break-word; }
+        .word-definition { font-size: 14px; color: var(--hint-color); line-height: 1.5; max-height: 120px; overflow-y: auto; }
+        .word-translation { font-size: 26px; font-weight: 600; color: #10b981; word-break: break-word; }
 
         .action-buttons {
             display: flex;
@@ -192,7 +192,7 @@
         .chat-container {
             width: 100%;
             max-width: 400px;
-            height: 100%;
+            height: 70vh;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -211,6 +211,7 @@
             border-radius: 18px;
             font-size: 14px;
             line-height: 1.4;
+            word-break: break-word;
         }
         .msg-ai { background: rgba(255,255,255,0.06); align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid rgba(255,255,255,0.05); }
         .msg-user { background: var(--accent-color); color: var(--button-text); align-self: flex-end; border-bottom-right-radius: 4px; }
@@ -394,23 +395,51 @@
         tg.ready();
         tg.expand();
 
-        // Railway orqali ishlayotgan FastAPI orqa foni
         const API_BASE_URL = "https://yodlacards-ai-bot-production.up.railway.app"; 
-        const user = tg.initDataUnsafe?.user || { id: 12345, first_name: "Alisher" }; // Fallback for dev
-
-        // Setup User UI
-        if (user) {
-            document.getElementById('user-name').innerText = user.first_name;
-            document.getElementById('user-avatar').innerText = user.first_name.charAt(0).toUpperCase();
+        
+        // Telegram foydalanuvchisini aniqlash (Strict checking)
+        let userId = 12345; 
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            const user = tg.initDataUnsafe.user;
+            userId = user.id;
+            document.getElementById('user-name').innerText = user.first_name || "Foydalanuvchi";
+            document.getElementById('user-avatar').innerText = (user.first_name || "U").charAt(0).toUpperCase();
         }
 
-        // --- GLOBAL STATE ---
+        // Global zaxira kartochkalar ro'yxati
         let flashcards = [
-            {id: 1, english: "Resilience", uzbek: "Matonat", ai_info: "The capacity to recover quickly from difficulties."},
-            {id: 2, english: "Ubiquitous", uzbek: "Hamma yerda mavjud", ai_info: "Present, appearing, or found everywhere."},
-            {id: 3, english: "Eloquent", uzbek: "Fasih, chechan", ai_info: "Fluent or persuasive in speaking or writing."}
+            {id: 0, english: "Resilience", uzbek: "Matonat", ai_info: "The capacity to recover quickly from difficulties."},
+            {id: 1, english: "Ubiquitous", uzbek: "Hamma yerda mavjud", ai_info: "Present, appearing, or found everywhere."}
         ];
         let currentIndex = 0;
+
+        // Dastur ishga tushganda birinchi navbatda ma'lumotlarni yuklash
+        window.onload = async function() {
+            await loadInitialData();
+        };
+
+        async function loadInitialData() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/user/${userId}/cards`);
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    flashcards = data;
+                    currentIndex = 0;
+                    updateCardUI();
+                }
+            } catch (error) {
+                console.log("Dastlabki ma'lumotlarni yuklashda xato:", error);
+                updateCardUI(); // Zaxira ma'lumotini ekranga chiqarish
+            }
+        }
+
+        function updateCardUI() {
+            if (flashcards[currentIndex]) {
+                document.getElementById('card-word').innerText = flashcards[currentIndex].english || "";
+                document.getElementById('card-def').innerText = flashcards[currentIndex].ai_info || "";
+                document.getElementById('card-trans').innerText = flashcards[currentIndex].uzbek || "";
+            }
+        }
 
         // --- TAB SWITCHER (SPA) ---
         function switchTab(tabElement, screenId) {
@@ -440,21 +469,17 @@
             cardEl.style.opacity = '0';
 
             setTimeout(() => {
-                // Backendga natijani yuborish (Sizning main.py dagi know/dont mexanizmiga moslashtirilgan)
-                if(user?.id) {
-                    fetch(`${API_BASE_URL}/api/flashcard/action`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ user_id: user.id, card_id: flashcards[currentIndex].id, action: action })
-                    }).catch(e => console.log(e));
-                }
+                const currentCardId = flashcards[currentIndex].id;
+                
+                // Backendga natijani yuborish
+                fetch(`${API_BASE_URL}/api/flashcard/action`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ user_id: userId, card_id: currentCardId, action: action })
+                }).catch(e => console.log("Action yuborishda xato:", e));
 
                 currentIndex = (currentIndex + 1) % flashcards.length;
-                
-                // UI yangilash
-                document.getElementById('card-word').innerText = flashcards[currentIndex].english;
-                document.getElementById('card-def').innerText = flashcards[currentIndex].ai_info;
-                document.getElementById('card-trans').innerText = flashcards[currentIndex].uzbek;
+                updateCardUI();
                 
                 cardEl.classList.remove('flipped');
                 cardEl.style.transform = 'none';
@@ -465,50 +490,27 @@
         // --- TAB 2: QUIZ LOGIC ---
         let currentQuizCorrect = "";
         function loadQuizData() {
-            // Agar bazada so'z yetarli bo'lsa, backenddan tasodifiy olishi ham mumkin
+            if (!flashcards || flashcards.length === 0) return;
+            
             const correctWord = flashcards[Math.floor(Math.random() * flashcards.length)];
             currentQuizCorrect = correctWord.uzbek;
             
             document.getElementById('quiz-question-word').innerText = correctWord.english;
             
-            // Shunchaki test variantlarini aralashtirish
             let options = [correctWord.uzbek];
             flashcards.forEach(w => {
                 if(w.uzbek !== correctWord.uzbek && options.length < 4) options.push(w.uzbek);
             });
+            
+            // Agar variantlar 4 tadan kam bo'lsa, qo'shimcha zaxira variantlar qo'shish
+            const fallbackOptions = ["Salom", "Kitob", "Rahmat", "Xayr"];
+            while(options.length < 4) {
+                let randomOpt = fallbackOptions[Math.floor(Math.random() * fallbackOptions.length)];
+                if(!options.includes(randomOpt)) options.push(randomOpt);
+            }
+            
             options.sort(() => Math.random() - 0.5);
 
             const container = document.getElementById('quiz-options-container');
             container.innerHTML = "";
-            options.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = "option-btn";
-                btn.innerText = opt;
-                btn.onclick = () => checkQuizAnswer(opt, btn);
-                container.appendChild(btn);
-            });
-        }
-
-        function checkQuizAnswer(selected, buttonEl) {
-            if (selected === currentQuizCorrect) {
-                tg.HapticFeedback.notificationOccurred('success');
-                buttonEl.style.background = "rgba(16, 185, 129, 0.2)";
-                buttonEl.style.borderColor = "#10b981";
-                setTimeout(() => { loadQuizData(); }, 800);
-            } else {
-                tg.HapticFeedback.notificationOccurred('error');
-                buttonEl.style.background = "rgba(239, 68, 68, 0.2)";
-                buttonEl.style.borderColor = "#ef4444";
-            }
-        }
-
-        // --- TAB 3: AI TEACHER INTERACTION ---
-        async function sendAiMessage() {
-            const inputEl = document.getElementById('chat-input-field');
-            const text = inputEl.value.trim();
-            if(!text) return;
-
-            tg.HapticFeedback.impactOccurred('medium');
-            inputEl.value = "";
-
-            const chat
+            options
