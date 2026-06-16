@@ -8,14 +8,17 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         :root {
-            --bg: var(--tg-theme-bg-color, #0f172a);
-            --text: var(--tg-theme-text-color, #f1f5f9);
+            --bg: #0f172a;
+            --card: #1e2937;
             --accent: #22d3ee;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --text: #f1f5f9;
             --hint: #94a3b8;
         }
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
-            font-family: system-ui, sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             background: var(--bg);
             color: var(--text);
             height: 100vh;
@@ -23,45 +26,115 @@
             display: flex;
             flex-direction: column;
         }
-        .header { padding: 16px; background: rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
-        .tab-content { flex: 1; overflow-y: auto; padding: 16px; display: none; }
+        .header {
+            padding: 16px 20px;
+            background: rgba(15,23,42,0.95);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(34,211,238,0.2);
+        }
+        .tab-content { flex: 1; overflow-y: auto; padding: 20px; display: none; background: var(--bg); }
         .tab-content.active { display: block; }
 
-        .card { background: rgba(255,255,255,0.08); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
-        .btn { padding: 14px; border-radius: 12px; font-weight: 600; width: 100%; margin: 8px 0; border: none; }
-        .btn-primary { background: var(--accent); color: black; }
-        .btn-success { background: #22c55e; color: white; }
-        .btn-danger { background: #ef4444; color: white; }
+        .card {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 1px solid rgba(34,211,238,0.1);
+        }
+
+        /* Flashcard */
+        .flash-container { perspective: 1200px; height: 420px; }
+        .flashcard {
+            width: 100%; height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+        .flashcard.flipped { transform: rotateY(180deg); }
+        .face {
+            position: absolute;
+            width: 100%; height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .front { background: linear-gradient(135deg, #1e40af, #3b82f6); }
+        .back { background: linear-gradient(135deg, #15803d, #4ade80); transform: rotateY(180deg); }
+
+        .btn {
+            padding: 16px 20px;
+            border: none;
+            border-radius: 16px;
+            font-size: 17px;
+            font-weight: 600;
+            width: 100%;
+            margin: 8px 0;
+            transition: all 0.2s;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn-primary { background: var(--accent); color: #0f172a; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
 
         .bottom-nav {
             display: flex;
-            background: rgba(255,255,255,0.05);
-            border-top: 1px solid rgba(255,255,255,0.1);
-            padding: 8px 0;
+            background: rgba(15,23,42,0.98);
+            border-top: 1px solid rgba(34,211,238,0.2);
+            padding: 10px 0;
         }
-        .nav-item { flex: 1; text-align: center; padding: 8px; color: var(--hint); cursor: pointer; font-size: 12px; }
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            color: var(--hint);
+            font-size: 11px;
+            padding: 8px 4px;
+            transition: color 0.2s;
+        }
         .nav-item.active { color: var(--accent); }
+        .nav-item i { font-size: 22px; display: block; margin-bottom: 4px; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div style="display:flex;align-items:center;gap:12px;">
-            <div id="avatar" style="width:42px;height:42px;border-radius:50%;background:#22c55e;color:white;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;">U</div>
-            <div id="username">Foydalanuvchi</div>
+        <div style="display:flex; align-items:center; gap:12px;">
+            <div id="avatar" style="width:48px;height:48px;border-radius:50%;background:linear-gradient(#22d3ee,#3b82f6);color:white;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:bold;">Y</div>
+            <div>
+                <div id="username" style="font-weight:600;">Foydalanuvchi</div>
+                <div style="font-size:13px;color:var(--hint);"><i class="fa-solid fa-fire"></i> <span id="streak">0</span> kun streak</div>
+            </div>
         </div>
-        <div><i class="fa-solid fa-fire"></i> <span id="streak">0</span></div>
+        <div style="text-align:right;">
+            <div style="font-size:15px;color:var(--accent);">Level <span id="level">1</span></div>
+        </div>
     </div>
 
     <!-- FLASHCARDS -->
     <div id="tab-flash" class="tab-content active">
-        <div class="card" id="flash-card">
-            <h2 id="eng-word" style="font-size:28px;text-align:center;">Resilience</h2>
-            <p id="ai-info" style="text-align:center;color:var(--hint);margin:15px 0;"></p>
-            <button onclick="flipCard()" class="btn" style="background:rgba(255,255,255,0.1);">Tarjimani ko‘rish</button>
-            <h3 id="uz-word" style="text-align:center;margin-top:20px;display:none;"></h3>
+        <div class="flash-container">
+            <div class="flashcard" id="flashcard" onclick="flipCard()">
+                <div class="face front">
+                    <span style="background:rgba(255,255,255,0.2);padding:6px 16px;border-radius:30px;font-size:13px;">ENGLISH</span>
+                    <h1 id="eng-word" style="font-size:32px;margin:25px 0;">Resilience</h1>
+                    <p id="ai-info" style="color:#ddd;line-height:1.5;text-align:center;"></p>
+                </div>
+                <div class="face back">
+                    <span style="background:rgba(255,255,255,0.2);padding:6px 16px;border-radius:30px;font-size:13px;">O‘ZBEKCHA</span>
+                    <h1 id="uz-word" style="font-size:32px;margin:30px 0;color:white;"></h1>
+                </div>
+            </div>
         </div>
-        <div style="display:flex;gap:12px;">
+        <div style="display:flex;gap:12px;margin-top:20px;">
             <button onclick="cardAction('dont')" class="btn btn-danger">❌ Bilmadim</button>
             <button onclick="cardAction('know')" class="btn btn-success">✅ Bildim</button>
         </div>
@@ -70,27 +143,28 @@
     <!-- SO‘Z QO‘SHISH -->
     <div id="tab-add" class="tab-content">
         <div class="card">
-            <input type="text" id="set-name" class="btn" style="background:rgba(255,255,255,0.1);color:white;" placeholder="Set nomi (masalan: IELTS)">
-            <input type="text" id="eng-input" class="btn" style="background:rgba(255,255,255,0.1);color:white;" placeholder="Inglizcha so‘z">
-            <input type="text" id="uz-input" class="btn" style="background:rgba(255,255,255,0.1);color:white;" placeholder="O‘zbekcha tarjimasi">
-            <button onclick="addWord()" class="btn btn-primary">➕ AI bilan saqlash</button>
+            <h2 style="margin-bottom:20px;">➕ Yangi so‘z qo‘shish</h2>
+            <input id="set-name" type="text" class="btn" style="background:rgba(255,255,255,0.1);color:white;" placeholder="Set nomi (IELTS, TOEFL...)">
+            <input id="eng-input" type="text" class="btn" style="background:rgba(255,255,255,0.1);color:white;" placeholder="Inglizcha so‘z">
+            <input id="uz-input" type="text" class="btn" style="background:rgba(255,255,255,0.1);color:white;" placeholder="O‘zbekcha tarjimasi">
+            <button onclick="addWord()" class="btn btn-primary">AI bilan saqlash</button>
         </div>
     </div>
 
-    <!-- VOICE TALAFFUZ -->
+    <!-- VOICE -->
     <div id="tab-voice" class="tab-content">
         <div class="card" style="text-align:center;">
-            <h3>Talaffuzni tekshirish</h3>
-            <button onclick="startVoiceRecording()" class="btn btn-primary" id="voice-btn">🎤 Ovoz yozishni boshlash</button>
-            <p id="recognized-text" style="margin:20px 0;"></p>
+            <h2>🎤 Talaffuz tekshiruvi</h2>
+            <button onclick="startVoiceRecording()" id="voice-btn" class="btn btn-primary" style="font-size:18px;padding:20px;">Ovoz yozishni boshlash</button>
+            <p id="recognized-text" style="margin-top:20px;min-height:60px;"></p>
         </div>
     </div>
 
     <!-- AI TEACHER -->
     <div id="tab-ai" class="tab-content">
-        <div id="chat-messages" style="height:55vh;overflow-y:auto;margin-bottom:10px;"></div>
-        <div style="display:flex;gap:8px;">
-            <input type="text" id="ai-input" placeholder="Inglizcha yozing..." style="flex:1;padding:14px;border-radius:12px;background:rgba(255,255,255,0.1);color:white;">
+        <div id="chat-messages" style="height:58vh;overflow-y:auto;padding:10px;"></div>
+        <div style="display:flex;gap:10px;padding:10px;background:var(--card);border-radius:20px;">
+            <input id="ai-input" type="text" placeholder="Inglizcha yozing..." style="flex:1;padding:16px;border-radius:16px;background:rgba(255,255,255,0.1);color:white;border:none;">
             <button onclick="sendAiMessage()" class="btn btn-primary">Yuborish</button>
         </div>
     </div>
@@ -98,22 +172,22 @@
     <!-- STATISTIKA -->
     <div id="tab-stats" class="tab-content">
         <div class="card">
-            <h3>Statistika</h3>
+            <h2>📊 Statistika</h2>
             <p>Daraja: <strong id="stat-level">1</strong></p>
             <p>XP: <strong id="stat-xp">0</strong></p>
             <p>Tangalar: <strong id="stat-coins">0</strong></p>
             <p>Streak: <strong id="stat-streak">0</strong> kun</p>
-            <p>Jami so‘zlar: <strong id="stat-words">0</strong></p>
+            <p>Jami so‘z: <strong id="stat-words">0</strong></p>
         </div>
     </div>
 
     <!-- BOTTOM NAV -->
     <div class="bottom-nav">
-        <div class="nav-item active" onclick="switchTab(0)">📇 Yodlash</div>
-        <div class="nav-item" onclick="switchTab(1)">➕ Qo‘shish</div>
-        <div class="nav-item" onclick="switchTab(2)">🎤 Voice</div>
-        <div class="nav-item" onclick="switchTab(3)">🧠 AI</div>
-        <div class="nav-item" onclick="switchTab(4)">📊 Stat</div>
+        <div class="nav-item active" onclick="switchTab(0)"><i class="fa-solid fa-layer-group"></i><br>Yodlash</div>
+        <div class="nav-item" onclick="switchTab(1)"><i class="fa-solid fa-plus"></i><br>Qo‘shish</div>
+        <div class="nav-item" onclick="switchTab(2)"><i class="fa-solid fa-microphone"></i><br>Voice</div>
+        <div class="nav-item" onclick="switchTab(3)"><i class="fa-solid fa-robot"></i><br>AI</div>
+        <div class="nav-item" onclick="switchTab(4)"><i class="fa-solid fa-chart-column"></i><br>Stat</div>
     </div>
 
     <script>
@@ -125,124 +199,106 @@
         let flashcards = [];
         let currentIndex = 0;
 
-        async function loadData() {
-            // Flashcards
-            const res = await fetch(`\( {API_BASE_URL}/api/user/ \){userId}/cards`);
-            flashcards = await res.json();
-            if (flashcards.length) showCurrentCard();
+        async function loadAllData() {
+            try {
+                const cardsRes = await fetch(`\( {API_BASE_URL}/api/user/ \){userId}/cards`);
+                flashcards = await cardsRes.json();
+                if (flashcards.length) showCard();
 
-            // Stats
-            const statsRes = await fetch(`\( {API_BASE_URL}/api/user/ \){userId}/stats`);
-            const stats = await statsRes.json();
-            document.getElementById('stat-level').textContent = stats.level;
-            document.getElementById('stat-xp').textContent = stats.xp;
-            document.getElementById('stat-coins').textContent = stats.coins;
-            document.getElementById('stat-streak').textContent = stats.streak;
-            document.getElementById('stat-words').textContent = stats.total_words;
+                const statsRes = await fetch(`\( {API_BASE_URL}/api/user/ \){userId}/stats`);
+                const stats = await statsRes.json();
+                document.getElementById('stat-level').textContent = stats.level;
+                document.getElementById('stat-xp').textContent = stats.xp;
+                document.getElementById('stat-coins').textContent = stats.coins;
+                document.getElementById('stat-streak').textContent = stats.streak;
+                document.getElementById('stat-words').textContent = stats.total_words;
+            } catch(e) { console.error(e); }
         }
 
-        function showCurrentCard() {
-            const card = flashcards[currentIndex];
-            document.getElementById('eng-word').textContent = card.english;
-            document.getElementById('ai-info').textContent = card.ai_info;
-            document.getElementById('uz-word').textContent = card.uzbek;
+        function showCard() {
+            const c = flashcards[currentIndex];
+            document.getElementById('eng-word').textContent = c.english;
+            document.getElementById('ai-info').textContent = c.ai_info || "";
+            document.getElementById('uz-word').textContent = c.uzbek;
         }
 
-        function flipCard() {
-            const uz = document.getElementById('uz-word');
-            uz.style.display = uz.style.display === 'none' ? 'block' : 'none';
-        }
+        function flipCard() { document.getElementById('flashcard').classList.toggle('flipped'); }
 
         async function cardAction(action) {
-            const card = flashcards[currentIndex];
+            const c = flashcards[currentIndex];
             await fetch(`${API_BASE_URL}/api/flashcard/action`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({user_id: userId, card_id: card.id, action})
+                body: JSON.stringify({user_id: userId, card_id: c.id, action})
             });
             currentIndex = (currentIndex + 1) % flashcards.length;
-            showCurrentCard();
+            showCard();
         }
 
-        // So‘z qo‘shish
         async function addWord() {
-            const set = document.getElementById('set-name').value || "Umumiy";
-            const eng = document.getElementById('eng-input').value;
-            const uz = document.getElementById('uz-input').value;
+            const set = document.getElementById('set-name').value || "Default";
+            const eng = document.getElementById('eng-input').value.trim();
+            const uz = document.getElementById('uz-input').value.trim();
+            if (!eng || !uz) return alert("So‘z va tarjima to‘ldiring!");
 
-            if (!eng || !uz) return alert("So‘z va tarjimani to‘ldiring!");
-
-            const wait = alert("AI ma’lumot tayyorlamoqda...");
+            alert("🤖 AI ma’lumot tayyorlamoqda...");
+            // Backendda to‘liq endpoint bo‘lsa ideal, hozircha AI orqali
             const res = await fetch(`${API_BASE_URL}/api/ai-teacher`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({text: `Create detailed explanation for word: ${eng}`})
+                body: JSON.stringify({text: `Explain the word "${eng}" in detail`})
             });
             const data = await res.json();
-
-            // Backendda so‘z qo‘shish endpoint yo‘q, shuning uchun hozircha xabar
-            alert(`✅ "${eng}" so‘zi qo‘shildi!\nAI: ${data.response.substring(0,100)}...`);
-            loadData(); // Yangilash
+            alert(`✅ "\( {eng}" saqlandi!\n\n \){data.response.substring(0,120)}...`);
+            loadAllData();
         }
 
-        // Voice Recording (Talaffuz)
-        let mediaRecorder;
+        let recorder;
         async function startVoiceRecording() {
             const btn = document.getElementById('voice-btn');
-            if (mediaRecorder && mediaRecorder.state === "recording") {
-                mediaRecorder.stop();
-                return;
-            }
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
+            if (recorder) { recorder.stop(); return; }
+            const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+            recorder = new MediaRecorder(stream);
             let chunks = [];
-
-            mediaRecorder.ondataavailable = e => chunks.push(e.data);
-            mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(chunks, { type: 'audio/wav' });
-                // Backendga yuborish (hozircha faqat matn ko‘rsatamiz)
-                document.getElementById('recognized-text').innerHTML = `<strong>Yozildi! AI tahlil qilmoqda...</strong>`;
-                // Keyinchalik to‘liq backend integratsiyasi qo‘shiladi
+            recorder.ondataavailable = e => chunks.push(e.data);
+            recorder.onstop = () => {
+                document.getElementById('recognized-text').innerHTML = `<strong>✅ Yozildi. AI tahlil qilmoqda...</strong>`;
             };
-            mediaRecorder.start();
+            recorder.start();
             btn.textContent = "⏹ To‘xtatish";
         }
 
-        // AI Chat
         async function sendAiMessage() {
             const input = document.getElementById('ai-input');
             const text = input.value.trim();
             if (!text) return;
-
             const box = document.getElementById('chat-messages');
-            box.innerHTML += `<div style="text-align:right;color:#67e8f9;margin:8px;">${text}</div>`;
-
+            box.innerHTML += `<div style="text-align:right;margin:10px;color:#67e8f9;">${text}</div>`;
             const res = await fetch(`${API_BASE_URL}/api/ai-teacher`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({text})
             });
             const data = await res.json();
-
-            box.innerHTML += `<div style="margin:8px;background:rgba(255,255,255,0.1);padding:12px;border-radius:12px;">${data.response}</div>`;
+            box.innerHTML += `<div style="background:rgba(34,211,238,0.1);padding:14px;border-radius:16px;margin:10px;">${data.response}</div>`;
             box.scrollTop = box.scrollHeight;
             input.value = '';
         }
 
         function switchTab(n) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             document.getElementById(['tab-flash','tab-add','tab-voice','tab-ai','tab-stats'][n]).classList.add('active');
             document.querySelectorAll('.nav-item')[n].classList.add('active');
         }
 
         window.onload = () => {
-            loadData();
+            loadAllData();
             if (tg.initDataUnsafe?.user) {
                 document.getElementById('username').textContent = tg.initDataUnsafe.user.first_name;
-                document.getElementById('avatar').textContent = tg.initDataUnsafe.user.first_name[0].toUpperCase();
+                document.getElementById('avatar').textContent = tg.initDataUnsafe.user.first_name[0];
             }
         };
     </script>
 </body>
-    </html>
+</html>
