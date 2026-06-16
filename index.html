@@ -280,7 +280,6 @@
 </head>
 <body>
 
-    <!-- Global App Header -->
     <header class="app-header">
         <div class="user-badge">
             <div class="user-avatar" id="user-avatar">U</div>
@@ -291,7 +290,6 @@
         </div>
     </header>
 
-    <!-- 1. FLASHCARDS SCREEN -->
     <main id="screen-flashcards" class="tab-screen active-screen">
         <div class="card-container">
             <div class="flashcard" id="active-card" onclick="flipCard()">
@@ -319,18 +317,15 @@
         </div>
     </main>
 
-    <!-- 2. QUIZ SCREEN -->
     <main id="screen-quiz" class="tab-screen">
         <div class="quiz-box">
             <p class="quiz-question">Ushbu so'zning to'g'ri tarjimasini toping:</p>
             <div class="quiz-word" id="quiz-question-word">Resilience</div>
             <div class="quiz-options" id="quiz-options-container">
-                <!-- Variantlar dinamik ravishda JS orqali qo'shiladi -->
-            </div>
+                </div>
         </div>
     </main>
 
-    <!-- 3. AI TEACHER SCREEN -->
     <main id="screen-ai" class="tab-screen">
         <div class="chat-container">
             <div class="chat-messages" id="chat-messages-box">
@@ -343,7 +338,6 @@
         </div>
     </main>
 
-    <!-- 4. STATS SCREEN -->
     <main id="screen-stats" class="tab-screen">
         <div class="stats-card">
             <h3>Sizning Ko'rsatkichlaringiz</h3>
@@ -370,7 +364,6 @@
         </div>
     </main>
 
-    <!-- Bottom Navigation Bar -->
     <nav class="nav-tabs">
         <div class="tab-item active" onclick="switchTab(this, 'screen-flashcards')">
             <i class="fa-solid fa-layer-group"></i>
@@ -416,8 +409,10 @@
         // Dastur ishga tushganda birinchi navbatda ma'lumotlarni yuklash
         window.onload = async function() {
             await loadInitialData();
+            await loadUserStats();
         };
 
+        // 1. FOYDALANUVCHI KARTALARINI MINI APPGA YUKLAB BERISH
         async function loadInitialData() {
             try {
                 const response = await fetch(`${API_BASE_URL}/api/user/${userId}/cards`);
@@ -457,6 +452,7 @@
             tg.HapticFeedback.impactOccurred('light');
         }
 
+        // 2. BILDIM / BILMADIM TUGMALARI BOSILGANDA BAZANI YANGILASH
         function handleCardAction(action) {
             if (action === 'know') {
                 tg.HapticFeedback.notificationOccurred('success');
@@ -476,7 +472,12 @@
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ user_id: userId, card_id: currentCardId, action: action })
-                }).catch(e => console.log("Action yuborishda xato:", e));
+                })
+                .then(res => res.json())
+                .then(data => {
+                    loadUserStats(); // Har bir actiondan keyin statistikani yangilash
+                })
+                .catch(e => console.log("Action yuborishda xato:", e));
 
                 currentIndex = (currentIndex + 1) % flashcards.length;
                 updateCardUI();
@@ -511,6 +512,4 @@
             
             options.sort(() => Math.random() - 0.5);
 
-            const container = document.getElementById('quiz-options-container');
-            container.innerHTML = "";
-            options
+            const container = doc
