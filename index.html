@@ -3,118 +3,229 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>YodlaCards AI</title>
+    <title>YodlaCards AI Master</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(34, 211, 238, 0.15); }
-        .flashcard { transition: transform 0.85s cubic-bezier(0.23, 1, 0.32, 1); box-shadow: 0 20px 40px -10px rgb(0 0 0 / 0.6); }
+        .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(34, 211, 238, 0.2); }
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+        .flashcard { transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1); }
         .flashcard.flipped { transform: rotateY(180deg); }
-        .nav-item.active { color: #22d3ee; }
+        .chat-container::-webkit-scrollbar { width: 4px; }
+        .chat-container::-webkit-scrollbar-thumb { background: rgba(34, 211, 238, 0.3); border-radius: 10px; }
     </style>
 </head>
-<body class="bg-slate-950 text-white min-h-screen">
+<body class="bg-slate-950 text-white min-h-screen flex flex-col justify-between">
 
     <!-- HEADER -->
-    <header class="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-xl border-b border-cyan-400/20 px-5 py-4">
-        <div class="flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <div class="w-11 h-11 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-2xl flex items-center justify-center text-3xl font-black">Y</div>
+    <header class="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-xl border-b border-cyan-400/20 px-5 py-4 w-full">
+        <div class="flex justify-between items-center max-w-md mx-auto w-full">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-2xl flex items-center justify-center text-2xl font-black">Y</div>
                 <div>
-                    <p id="username" class="text-xl font-bold">Alisher</p>
-                    <p class="text-xs text-slate-400 flex items-center gap-1"><i class="fa-solid fa-fire text-orange-400"></i> <span id="streak">0</span> kun</p>
+                    <p id="username" class="text-base font-bold">Alisher</p>
+                    <p class="text-[11px] text-slate-400"><i class="fa-solid fa-fire text-orange-400"></i> <span id="user-streak">0</span> kunlik seriya</p>
                 </div>
             </div>
             <div class="text-right">
-                <span class="text-cyan-400 text-sm">Level</span>
-                <span id="level" class="text-3xl font-bold text-cyan-400 ml-1">1</span>
+                <span class="text-xs text-slate-400 block">Daraja</span>
+                <span id="user-level" class="text-xl font-black text-cyan-400">1</span>
             </div>
         </div>
     </header>
 
-    <main class="pb-24">
+    <!-- ASOSIY EKRAN (MAIN) -->
+    <main class="pb-24 flex-1 w-full overflow-y-auto max-w-md mx-auto">
 
-        <!-- YODLASH -->
-        <div id="tab-flash" class="tab-content active p-5">
+        <!-- 1-TAB: YODLASH -->
+        <div id="tab-flash" class="tab-content p-5">
             <div id="set-list" class="space-y-4"></div>
-            <div id="count-select" class="hidden max-w-md mx-auto glass rounded-3xl p-6"></div>
-            <div id="flash-area" class="hidden max-w-md mx-auto">
-                <div onclick="flipCard()" id="flashcard" class="flashcard relative h-[460px] cursor-pointer">
-                    <div class="face front absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-8 flex flex-col justify-center items-center">
-                        <div class="px-6 py-2 bg-white/10 rounded-full text-sm">ENGLISH</div>
-                        <h1 id="eng-word" class="text-5xl font-bold mt-10 text-center"></h1>
-                        <p id="ai-info" class="mt-8 text-center text-slate-200 text-[15px]"></p>
+            <div id="count-select" class="hidden glass rounded-3xl p-6"></div>
+            
+            <div id="flash-area" class="hidden perspective-1000">
+                <div onclick="flipCard()" id="flashcard" class="flashcard relative h-[380px] w-full cursor-pointer transform-style-3d">
+                    <div class="face front absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-8 flex flex-col justify-center items-center backface-hidden shadow-2xl">
+                        <div class="px-5 py-1.5 bg-white/10 rounded-full text-xs font-semibold tracking-wider">ENGLISH</div>
+                        <h1 id="eng-word" class="text-3xl font-bold mt-8 text-center break-words w-full">Word</h1>
+                        <p id="ai-info" class="mt-4 text-center text-slate-200 text-xs line-clamp-4 px-2"></p>
+                        <span class="absolute bottom-4 text-[11px] text-slate-300/60"><i class="fa-solid fa-rotate"></i> Tarjimani ko'rish</span>
                     </div>
-                    <div class="face back absolute inset-0 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-3xl p-8 flex flex-col justify-center items-center rotate-y-180">
-                        <div class="px-6 py-2 bg-white/10 rounded-full text-sm">O‘ZBEKCHA</div>
-                        <h1 id="uz-word" class="text-5xl font-bold mt-12 text-white text-center"></h1>
+                    <div class="face back absolute inset-0 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-3xl p-8 flex flex-col justify-center items-center backface-hidden rotate-y-180 shadow-2xl">
+                        <div class="px-5 py-1.5 bg-white/10 rounded-full text-xs font-semibold tracking-wider">O‘ZBEKCHA</div>
+                        <h1 id="uz-word" class="text-3xl font-bold mt-8 text-white text-center break-words w-full">Tarjima</h1>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4 mt-8">
-                    <button onclick="cardAction('dont')" class="glass py-6 rounded-3xl text-red-400 font-semibold">❌ Bilmadim</button>
-                    <button onclick="cardAction('know')" class="glass py-6 rounded-3xl text-emerald-400 font-semibold">✅ Bildim</button>
+                <div class="grid grid-cols-2 gap-4 mt-6">
+                    <button onclick="cardAction('dont')" class="glass py-4 rounded-2xl text-red-400 font-bold active:scale-95 transition-transform">❌ Bilmadim</button>
+                    <button onclick="cardAction('know')" class="glass py-4 rounded-2xl text-emerald-400 font-bold active:scale-95 transition-transform">✅ Bildim</button>
                 </div>
             </div>
         </div>
 
-        <!-- SO‘Z QO‘SHISH -->
+        <!-- 2-TAB: SO'Z QO'SHISH -->
         <div id="tab-add" class="tab-content hidden p-5">
-            <div class="max-w-md mx-auto glass rounded-3xl p-8">
-                <h2 class="text-3xl font-bold text-center mb-2">➕ So‘z qo‘shish</h2>
-                <p id="current-set-display" class="text-cyan-400 text-center mb-6 font-medium"></p>
-
-                <input id="set-name" class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-6 py-5 mb-6" placeholder="Set nomi (Unit 1)">
-                <input id="eng-input" class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-6 py-5 mb-4" placeholder="Inglizcha so‘z">
-                <input id="uz-input" class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-6 py-5 mb-8" placeholder="O‘zbekcha tarjimasi">
-
+            <div class="glass rounded-3xl p-6">
+                <h2 class="text-2xl font-bold text-center mb-1">➕ So‘z qo‘shish</h2>
+                <p id="current-set-display" class="text-cyan-400 text-sm text-center mb-5 font-medium"></p>
+                <input id="set-name" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3.5 mb-3 text-sm outline-none focus:border-cyan-400 text-white" placeholder="Set nomi (Masalan: IELTS)">
+                <input id="eng-input" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3.5 mb-3 text-sm outline-none focus:border-cyan-400 text-white" placeholder="Inglizcha so‘z">
+                <input id="uz-input" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3.5 mb-6 text-sm outline-none focus:border-cyan-400 text-white" placeholder="O‘zbekcha tarjimasi">
                 <div class="flex gap-3">
-                    <button onclick="addWordAndContinue()" class="flex-1 bg-slate-700 hover:bg-slate-600 py-6 rounded-3xl font-semibold">➕ Yana qo‘shish</button>
-                    <button onclick="finishAddingWords()" class="flex-1 bg-gradient-to-r from-cyan-400 to-blue-500 text-black py-6 rounded-3xl font-bold">✅ Tugatish</button>
+                    <button onclick="addWordAndContinue()" class="flex-1 bg-slate-800 py-4 rounded-2xl text-sm font-semibold active:scale-95 transition-transform">➕ Yana</button>
+                    <button onclick="finishAddingWords()" class="flex-1 bg-gradient-to-r from-cyan-400 to-blue-500 text-black py-4 rounded-2xl text-sm font-bold active:scale-95 transition-transform">✅ Tugatish</button>
                 </div>
             </div>
         </div>
 
-        <!-- VOICE, AI, STAT bo'limlari ham qo'shilgan (qisqa) -->
-        <div id="tab-voice" class="tab-content hidden p-5">Voice bo'limi</div>
-        <div id="tab-ai" class="tab-content hidden p-5">AI Teacher</div>
-        <div id="tab-stats" class="tab-content hidden p-5">Statistika</div>
+        <!-- 3-TAB: TALAFFUZ TEKSHIRISH -->
+        <div id="tab-speech" class="tab-content hidden p-5">
+            <div class="glass rounded-3xl p-6 text-center">
+                <h2 class="text-2xl font-bold mb-2"><i class="fa-solid fa-microphone text-cyan-400"></i> Talaffuz</h2>
+                <p class="text-slate-400 text-xs mb-6">Berilgan inglizcha so'zni baland ovozda o'qing va tugmani bosib gapiring.</p>
+                
+                <div class="bg-slate-900/60 p-6 rounded-2xl mb-6 border border-slate-800">
+                    <span class="text-xs text-slate-500 block mb-1">O'qilishi kerak bo'lgan so'z:</span>
+                    <h3 id="speech-target-word" class="text-3xl font-black text-cyan-400 tracking-wide">Excellent</h3>
+                </div>
+
+                <div class="flex flex-col items-center justify-center my-6">
+                    <button id="mic-btn" onclick="toggleRecording()" class="w-20 h-20 bg-gradient-to-tr from-cyan-500 to-blue-600 rounded-full flex items-center justify-center text-2xl shadow-xl active:scale-95 transition-transform">
+                        <i id="mic-icon" class="fa-solid fa-microphone"></i>
+                    </button>
+                    <p id="recording-status" class="text-xs text-slate-400 mt-3">Gapirish uchun mikrofonga bosing</p>
+                </div>
+
+                <div id="speech-result-box" class="hidden p-4 rounded-2xl bg-slate-900/80 border border-slate-800">
+                    <p class="text-xs text-slate-400">Sizning natijangiz:</p>
+                    <div id="speech-score" class="text-4xl font-black text-emerald-400 my-1">94%</div>
+                    <p id="speech-feedback" class="text-xs text-slate-300">Ajoyib talaffuz! Xuddi native speaker-lar kabi.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4-TAB: AI TEACHER CHAT -->
+        <div id="tab-chat" class="tab-content hidden flex flex-col h-[calc(100vh-160px)] p-4">
+            <div id="chat-box" class="chat-container flex-1 overflow-y-auto space-y-3 pr-1 mb-3">
+                <div class="flex gap-2 max-w-[85%]">
+                    <div class="w-7 h-7 rounded-xl bg-cyan-500 flex items-center justify-center text-xs text-black font-bold"><i class="fa-solid fa-robot"></i></div>
+                    <div class="bg-slate-900 p-3 rounded-2xl text-sm border border-slate-800">Hello! I'm your AI Teacher. Let's practice English. How was your day today? 😊</div>
+                </div>
+            </div>
+            <div class="flex gap-2 bg-slate-900 p-2 rounded-2xl border border-slate-800">
+                <input id="chat-input" type="text" class="flex-1 bg-transparent px-3 py-2 text-sm outline-none text-white placeholder-slate-500" placeholder="Inglizcha javob yozing...">
+                <button onclick="sendChatMessage()" class="w-10 h-10 bg-cyan-400 text-black rounded-xl flex items-center justify-center active:scale-95 transition-transform">
+                    <i class="fa-solid fa-paper-plane text-sm"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 5-TAB: STATISTIKA -->
+        <div id="tab-stats" class="tab-content hidden p-5 space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="glass p-5 rounded-2xl text-center">
+                    <i class="fa-solid fa-graduation-cap text-2xl text-cyan-400 mb-2"></i>
+                    <span class="text-xs text-slate-400 block">Jami so'zlar</span>
+                    <h3 id="stat-total-words" class="text-2xl font-black mt-1">0</h3>
+                </div>
+                <div class="glass p-5 rounded-2xl text-center">
+                    <i class="fa-solid fa-check-double text-2xl text-emerald-400 mb-2"></i>
+                    <span class="text-xs text-slate-400 block">Yodlanganlar</span>
+                    <h3 id="stat-learned-words" class="text-2xl font-black mt-1">0</h3>
+                </div>
+            </div>
+            
+            <div class="glass p-5 rounded-2xl">
+                <h4 class="text-sm font-bold mb-3 flex justify-between items-center">
+                    <span>Kunlik faollik</span>
+                    <span class="text-xs text-cyan-400" id="stat-streak-txt">0 kun</span>
+                </h4>
+                <div class="flex justify-between gap-1 text-center text-[10px] text-slate-400">
+                    <div><div class="w-8 h-8 rounded-lg bg-emerald-500 mx-auto mb-1 flex items-center justify-center text-black font-bold"><i class="fa-solid fa-check"></i></div>Du</div>
+                    <div><div class="w-8 h-8 rounded-lg bg-emerald-500 mx-auto mb-1 flex items-center justify-center text-black font-bold"><i class="fa-solid fa-check"></i></div>Se</div>
+                    <div><div class="w-8 h-8 rounded-lg bg-slate-800 mx-auto mb-1 border border-slate-700"></div>Ch</div>
+                    <div><div class="w-8 h-8 rounded-lg bg-slate-800 mx-auto mb-1 border border-slate-700"></div>Pa</div>
+                    <div><div class="w-8 h-8 rounded-lg bg-slate-800 mx-auto mb-1 border border-slate-700"></div>Ju</div>
+                    <div><div class="w-8 h-8 rounded-lg bg-slate-800 mx-auto mb-1 border border-slate-700"></div>Sh</div>
+                    <div><div class="w-8 h-8 rounded-lg bg-slate-800 mx-auto mb-1 border border-slate-700"></div>Ya</div>
+                </div>
+            </div>
+
+            <div class="glass p-5 rounded-2xl">
+                <h4 class="text-sm font-bold mb-2">Daraja taraqqiyoti (XP)</h4>
+                <div class="w-full bg-slate-900 h-3 rounded-full overflow-hidden border border-slate-800 p-[2px]">
+                    <div id="xp-bar" class="bg-gradient-to-r from-cyan-400 to-blue-500 h-full rounded-full" style="width: 35%"></div>
+                </div>
+                <span class="text-[10px] text-slate-400 mt-1 block text-right">Keyingi darajaga 120 XP qoldi</span>
+            </div>
+        </div>
+
     </main>
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-2xl border-t border-slate-700 flex text-xs">
-        <div onclick="switchTab(0)" class="flex-1 py-4 flex flex-col items-center nav-item active"><i class="fa-solid fa-layer-group text-2xl"></i><span>Yodlash</span></div>
-        <div onclick="switchTab(1)" class="flex-1 py-4 flex flex-col items-center nav-item"><i class="fa-solid fa-plus text-2xl"></i><span>Qo‘shish</span></div>
-        <div onclick="switchTab(2)" class="flex-1 py-4 flex flex-col items-center nav-item"><i class="fa-solid fa-microphone text-2xl"></i><span>Voice</span></div>
-        <div onclick="switchTab(3)" class="flex-1 py-4 flex flex-col items-center nav-item"><i class="fa-solid fa-robot text-2xl"></i><span>AI</span></div>
-        <div onclick="switchTab(4)" class="flex-1 py-4 flex flex-col items-center nav-item"><i class="fa-solid fa-chart-column text-2xl"></i><span>Stat</span></div>
+    <!-- PASTKI NAVIGATSIYA TUGMALARI (NAVBAR) -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-2xl border-t border-slate-800 flex text-[10px] z-50">
+        <div onclick="switchTab(0)" id="nav-btn-0" class="flex-1 py-3.5 flex flex-col items-center text-cyan-400 cursor-pointer"><i class="fa-solid fa-layer-group text-xl mb-1"></i><span>Yodlash</span></div>
+        <div onclick="switchTab(1)" id="nav-btn-1" class="flex-1 py-3.5 flex flex-col items-center text-slate-400 cursor-pointer"><i class="fa-solid fa-plus text-xl mb-1"></i><span>Qo'shish</span></div>
+        <div onclick="switchTab(2)" id="nav-btn-2" class="flex-1 py-3.5 flex flex-col items-center text-slate-400 cursor-pointer"><i class="fa-solid fa-microphone text-xl mb-1"></i><span>Talaffuz</span></div>
+        <div onclick="switchTab(3)" id="nav-btn-3" class="flex-1 py-3.5 flex flex-col items-center text-slate-400 cursor-pointer"><i class="fa-solid fa-comment-medical text-xl mb-1"></i><span>AI Teacher</span></div>
+        <div onclick="switchTab(4)" id="nav-btn-4" class="flex-1 py-3.5 flex flex-col items-center text-slate-400 cursor-pointer"><i class="fa-solid fa-chart-simple text-xl mb-1"></i><span>Statistika</span></div>
     </nav>
 
     <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
         const API_BASE_URL = "https://yodlacards-ai-bot-production.up.railway.app";
-        let userId = Telegram.WebApp.initDataUnsafe?.user?.id || 12345;
+        let userId = tg.initDataUnsafe?.user?.id || 12345;
+        
         let currentFlashcards = [];
         let currentIndex = 0;
         let currentSetName = "";
+        let isRecording = false;
+        let mediaRecorder = null;
+        let audioChunks = [];
 
+        // --- 1. PROFIL VA STATISTIKANI INTEGRATSIYA QILISH ---
+        async function fetchUserData() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/user/${userId}/stats`);
+                const data = await res.json();
+                document.getElementById('user-streak').textContent = data.streak || 0;
+                document.getElementById('user-level').textContent = data.level || 1;
+                document.getElementById('stat-total-words').textContent = data.total_words || 0;
+                document.getElementById('stat-learned-words').textContent = data.learned_words || 0;
+                document.getElementById('stat-streak-txt').textContent = `${data.streak || 0} kun`;
+                let xpPercent = data.xp_percent || 35;
+                document.getElementById('xp-bar').style.width = `${xpPercent}%`;
+            } catch(e) { console.error("Profil xatosi:", e); }
+        }
+
+        // --- 2. KARTALOCHKALAR MANTIG'I ---
         async function loadSets() {
             const container = document.getElementById('set-list');
             try {
-                const res = await fetch(`\( {API_BASE_URL}/api/user/ \){userId}/sets`);
+                const res = await fetch(`${API_BASE_URL}/api/user/${userId}/sets`);
                 const sets = await res.json();
+                if (!sets || sets.length === 0) {
+                    container.innerHTML = `<p class="text-center text-slate-400 py-10 text-xs">Hozircha set yo'q. Qo‘shish bo‘limidan so‘z kiriting.</p>`;
+                    return;
+                }
                 container.innerHTML = sets.map(s => `
-                    <div onclick="selectSet('${s.set_name}', ${s.count})" class="glass rounded-3xl p-6 flex justify-between items-center cursor-pointer hover:scale-[1.02]">
+                    <div onclick="selectSet('${s.set_name}', ${s.count})" class="glass rounded-2xl p-5 flex justify-between items-center cursor-pointer active:scale-[0.99] transition-transform">
                         <div>
-                            <p class="font-semibold text-xl">${s.set_name}</p>
-                            <p class="text-slate-400">${s.count} ta so‘z</p>
+                            <p class="font-bold text-lg text-white">${s.set_name}</p>
+                            <p class="text-slate-400 text-xs">${s.count} ta so‘z</p>
                         </div>
                         <i class="fa-solid fa-chevron-right text-cyan-400"></i>
                     </div>
                 `).join('');
-            } catch(e) {
-                container.innerHTML = `<p class="text-center text-slate-400 py-10">Hozircha set yo'q. Qo'shish bo'limidan boshlang.</p>`;
-            }
+            } catch(e) { container.innerHTML = `<p class="text-center text-slate-400 py-10 text-xs">Yuklashda xatolik yuz berdi.</p>`; }
         }
 
         function selectSet(setName, count) {
@@ -122,89 +233,78 @@
             const div = document.getElementById('count-select');
             div.classList.remove('hidden');
             div.innerHTML = `
-                <h3 class="text-2xl font-bold text-center mb-6">Qancha so‘z yodlamoqchisiz?</h3>
+                <h3 class="text-lg font-bold text-center mb-5">Qancha so‘z yodlaysiz?</h3>
                 <div class="grid grid-cols-2 gap-3">
-                    <button onclick="startFlashcards('${setName}', 10)" class="glass py-6 rounded-2xl">10 ta</button>
-                    <button onclick="startFlashcards('${setName}', 20)" class="glass py-6 rounded-2xl">20 ta</button>
-                    <button onclick="startFlashcards('${setName}', 50)" class="glass py-6 rounded-2xl">50 ta</button>
-                    <button onclick="startFlashcards('${setName}', ${count})" class="glass py-6 rounded-2xl">Hammasi</button>
+                    <button onclick="startFlashcards('${setName}', 10)" class="glass py-3.5 rounded-xl text-xs font-medium">10 ta</button>
+                    <button onclick="startFlashcards('${setName}', 20)" class="glass py-3.5 rounded-xl text-xs font-medium">20 ta</button>
+                    <button onclick="startFlashcards('${setName}', 50)" class="glass py-3.5 rounded-xl text-xs font-medium">50 ta</button>
+                    <button onclick="startFlashcards('${setName}', ${count})" class="glass py-3.5 rounded-xl text-xs text-cyan-400 font-bold">Hammasi (${count})</button>
                 </div>
+                <button onclick="cancelSetSelection()" class="w-full text-center text-slate-500 text-xs mt-5 underline">Orqaga</button>
             `;
+        }
+
+        function cancelSetSelection() {
+            document.getElementById('count-select').classList.add('hidden');
+            document.getElementById('set-list').classList.remove('hidden');
         }
 
         async function startFlashcards(setName, limit) {
             document.getElementById('count-select').classList.add('hidden');
             document.getElementById('flash-area').classList.remove('hidden');
             try {
-                const res = await fetch(`\( {API_BASE_URL}/api/user/ \){userId}/cards?set=\( {setName}&limit= \){limit}`);
+                const res = await fetch(`${API_BASE_URL}/api/user/${userId}/cards?set=${setName}&limit=${limit}`);
                 currentFlashcards = await res.json();
                 currentIndex = 0;
                 showCurrentCard();
-            } catch(e) { console.error(e); }
+            } catch(e) { alert("Xatolik yuz berdi."); }
         }
 
         function showCurrentCard() {
+            if (!currentFlashcards || currentFlashcards.length === 0) {
+                alert("So'zlar tugadi!");
+                switchTab(0);
+                return;
+            }
             const c = currentFlashcards[currentIndex];
             document.getElementById('eng-word').textContent = c.english;
-            document.getElementById('ai-info').textContent = c.ai_info || "";
+            document.getElementById('ai-info').textContent = c.ai_info || "AI misoli yuklanmoqda...";
             document.getElementById('uz-word').textContent = c.uzbek;
+            
+            // Keyingi talaffuz uchun maqsadli so'z qilib belgilaydi
+            document.getElementById('speech-target-word').textContent = c.english;
         }
 
-        function flipCard() { document.getElementById('flashcard').classList.toggle('flipped'); }
+        function flipCard() { 
+            document.getElementById('flashcard').classList.toggle('flipped');
+            if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        }
 
         async function cardAction(action) {
+            if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
             const c = currentFlashcards[currentIndex];
-            await fetch(`${API_BASE_URL}/api/flashcard/action`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({user_id: userId, card_id: c.id, action})
-            });
-            currentIndex = (currentIndex + 1) % currentFlashcards.length;
-            showCurrentCard();
+            
+            try {
+                await fetch(`${API_BASE_URL}/api/flashcard/action`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({user_id: userId, card_id: c.id, action: action})
+                });
+            } catch(e) { console.error(e); }
+
+            document.getElementById('flashcard').classList.remove('flipped');
+            setTimeout(() => {
+                currentIndex = (currentIndex + 1) % currentFlashcards.length;
+                showCurrentCard();
+            }, 200);
         }
 
-        // SO‘Z QO‘SHISH
+        // --- 3. SO'Z QO'SHISH ---
         async function addWordAndContinue() {
-            const set = document.getElementById('set-name').value.trim() || currentSetName || "Umumiy";
+            const set = document.getElementById('set-name').value.trim() || currentSetName || "General";
             const eng = document.getElementById('eng-input').value.trim();
             const uz = document.getElementById('uz-input').value.trim();
 
-            if (!eng || !uz) return alert("So'zlarni to'ldiring!");
-
+            if (!eng || !uz) return alert("Iltimos barcha maydonlarni to'ldiring!");
             currentSetName = set;
-            document.getElementById('current-set-display').textContent = `Set: ${set}`;
-
-            try {
-                await fetch(`\( {API_BASE_URL}/api/user/ \){userId}/add_word`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({set_name: set, english: eng, uzbek: uz})
-                });
-                alert(`✅ "${eng}" qo'shildi!`);
-                document.getElementById('eng-input').value = '';
-                document.getElementById('uz-input').value = '';
-            } catch(e) { alert("Xatolik yuz berdi"); }
-        }
-
-        function finishAddingWords() {
-            alert(`✅ "${currentSetName}" seti saqlandi! Yodlash bo'limida uni toping.`);
-            switchTab(0);
-            loadSets();
-        }
-
-        function switchTab(n) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(['tab-flash','tab-add','tab-voice','tab-ai','tab-stats'][n]).classList.remove('hidden');
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-item')[n].classList.add('active');
-        }
-
-        window.onload = () => {
-            loadSets();
-            if (Telegram.WebApp.initDataUnsafe?.user) {
-                document.getElementById('username').textContent = Telegram.WebApp.initDataUnsafe.user.first_name;
-            }
-        };
-    </script>
-</body>
-            </html>
+            document.getElementById('c
