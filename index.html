@@ -8,11 +8,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght=400;500;600;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; }
         .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(34, 211, 238, 0.2); }
-        .flashcard { transition: transform 0.85s cubic-bezier(0.23, 1, 0.32, 1); }
+        .flashcard { transition: transform 0.85s cubic-bezier(0.23, 1, 0.32, 1); transform-style: preserve-3d; }
         .flashcard.flipped { transform: rotateY(180deg); }
+        .face { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
     </style>
 </head>
 <body class="bg-slate-950 text-white min-h-screen">
@@ -32,7 +34,7 @@
 
     <main class="pb-24">
 
-        <!-- YODLASH -->
+        <!-- YODLASH BO'LIMI -->
         <div id="tab-flash" class="tab-content active p-5">
             <div id="set-list" class="space-y-4"></div>
             <div id="count-select" class="hidden max-w-md mx-auto glass rounded-3xl p-6"></div>
@@ -55,7 +57,7 @@
             </div>
         </div>
 
-        <!-- SO‘Z QO‘SHISH -->
+        <!-- SO‘Z QO‘SHISH BO'LIMI -->
         <div id="tab-add" class="tab-content hidden p-5">
             <div class="max-w-md mx-auto glass rounded-3xl p-8">
                 <h2 class="text-3xl font-bold text-center mb-2">➕ So‘z qo‘shish</h2>
@@ -73,9 +75,10 @@
         </div>
     </main>
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-2xl border-t border-slate-700 flex text-xs">
-        <div onclick="switchTab(0)" class="flex-1 py-4 flex flex-col items-center nav-item active"><i class="fa-solid fa-layer-group text-2xl"></i><span>Yodlash</span></div>
-        <div onclick="switchTab(1)" class="flex-1 py-4 flex flex-col items-center nav-item"><i class="fa-solid fa-plus text-2xl"></i><span>Qo‘shish</span></div>
+    <!-- BOTTOM NAVIGATION -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-2xl border-t border-slate-700 flex text-xs z-50">
+        <div onclick="switchTab(0)" class="flex-1 py-4 flex flex-col items-center nav-item active cursor-pointer text-cyan-400"><i class="fa-solid fa-layer-group text-2xl mb-1"></i><span>Yodlash</span></div>
+        <div onclick="switchTab(1)" class="flex-1 py-4 flex flex-col items-center nav-item cursor-pointer text-slate-400"><i class="fa-solid fa-plus text-2xl mb-1"></i><span>Qo‘shish</span></div>
     </nav>
 
     <script>
@@ -85,14 +88,22 @@
         let currentIndex = 0;
         let currentSetName = "";
 
+        // Setlarni yuklash
         async function loadSets() {
             const container = document.getElementById('set-list');
+            
+            // Ekran holatini tozalaymiz (yashirin elementlarni joyiga qaytaramiz)
+            container.classList.remove('hidden');
+            document.getElementById('count-select').classList.add('hidden');
+            document.getElementById('flash-area').classList.add('hidden');
+
             try {
-                const res = await fetch(`\( {API_BASE_URL}/api/user/ \){userId}/sets`);
+                const res = await fetch(`${API_BASE_URL}/api/user/${userId}/sets`);
                 const sets = await res.json();
-                if (sets.length === 0) throw new Error();
+                if (!sets || sets.length === 0) throw new Error();
+                
                 container.innerHTML = sets.map(s => `
-                    <div onclick="selectSet('${s.set_name}', ${s.count})" class="glass rounded-3xl p-6 flex justify-between items-center cursor-pointer">
+                    <div onclick="selectSet('${s.set_name}', ${s.count})" class="glass rounded-3xl p-6 flex justify-between items-center cursor-pointer hover:border-cyan-400/50 transition">
                         <div>
                             <p class="font-semibold text-xl">${s.set_name}</p>
                             <p class="text-slate-400">${s.count} ta so‘z</p>
@@ -105,6 +116,7 @@
             }
         }
 
+        // Qancha so'z yodlashni tanlash ekrani
         function selectSet(setName, count) {
             document.getElementById('set-list').classList.add('hidden');
             const div = document.getElementById('count-select');
@@ -112,45 +124,63 @@
             div.innerHTML = `
                 <h3 class="text-2xl font-bold text-center mb-6">Qancha so‘z yodlamoqchisiz?</h3>
                 <div class="grid grid-cols-2 gap-3">
-                    <button onclick="startFlashcards('${setName}', 10)" class="glass py-6 rounded-2xl">10 ta</button>
-                    <button onclick="startFlashcards('${setName}', 20)" class="glass py-6 rounded-2xl">20 ta</button>
-                    <button onclick="startFlashcards('${setName}', 50)" class="glass py-6 rounded-2xl">50 ta</button>
-                    <button onclick="startFlashcards('${setName}', ${count})" class="glass py-6 rounded-2xl">Hammasi</button>
+                    <button onclick="startFlashcards('${setName}', 10)" class="glass py-6 rounded-2xl hover:bg-slate-800 transition">10 ta</button>
+                    <button onclick="startFlashcards('${setName}', 20)" class="glass py-6 rounded-2xl hover:bg-slate-800 transition">20 ta</button>
+                    <button onclick="startFlashcards('${setName}', 50)" class="glass py-6 rounded-2xl hover:bg-slate-800 transition">50 ta</button>
+                    <button onclick="startFlashcards('${setName}', ${count})" class="glass py-6 rounded-2xl hover:bg-slate-800 transition">Hammasi</button>
                 </div>
             `;
         }
 
+        // Flashcard o'yinini boshlash
         async function startFlashcards(setName, limit) {
             document.getElementById('count-select').classList.add('hidden');
             document.getElementById('flash-area').classList.remove('hidden');
             try {
-                const res = await fetch(`\( {API_BASE_URL}/api/user/ \){userId}/cards?set=\( {setName}&limit= \){limit}`);
+                const res = await fetch(`${API_BASE_URL}/api/user/${userId}/cards?set=${setName}&limit=${limit}`);
                 currentFlashcards = await res.json();
                 currentIndex = 0;
                 showCurrentCard();
             } catch(e) { console.error(e); }
         }
 
+        // Faol kartani ko'rsatish
         function showCurrentCard() {
+            if (currentFlashcards.length === 0) {
+                alert("Bu setda so'zlar topilmadi.");
+                loadSets();
+                return;
+            }
+            // Kartani o'girilgan bo'lsa oldi tomonga qaytaramiz
+            document.getElementById('flashcard').classList.remove('flipped');
+            
             const c = currentFlashcards[currentIndex];
             document.getElementById('eng-word').textContent = c.english;
             document.getElementById('ai-info').textContent = c.ai_info || "";
             document.getElementById('uz-word').textContent = c.uzbek;
         }
 
-        function flipCard() { document.getElementById('flashcard').classList.toggle('flipped'); }
+        // Kartani o'girish
+        function flipCard() { 
+            document.getElementById('flashcard').classList.toggle('flipped'); 
+        }
 
+        // Bildim / Bilmadim tugmalari logikasi
         async function cardAction(action) {
             const c = currentFlashcards[currentIndex];
-            await fetch(`${API_BASE_URL}/api/flashcard/action`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({user_id: userId, card_id: c.id, action})
-            });
+            try {
+                await fetch(`${API_BASE_URL}/api/flashcard/action`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({user_id: userId, card_id: c.id, action})
+                });
+            } catch(e) { console.error(e); }
+
             currentIndex = (currentIndex + 1) % currentFlashcards.length;
             showCurrentCard();
         }
 
+        // So'z qo'shish va davom etish
         async function addWordAndContinue() {
             const set = document.getElementById('set-name').value.trim() || currentSetName || "Umumiy";
             const eng = document.getElementById('eng-input').value.trim();
@@ -162,33 +192,71 @@
             document.getElementById('current-set-display').textContent = `Set: ${set}`;
 
             try {
-                await fetch(`\( {API_BASE_URL}/api/user/ \){userId}/add_word`, {
+                const response = await fetch(`${API_BASE_URL}/api/user/${userId}/add_word`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({set_name: set, english: eng, uzbek: uz})
                 });
-                alert(`✅ "${eng}" qo'shildi!`);
-                document.getElementById('eng-input').value = '';
-                document.getElementById('uz-input').value = '';
-            } catch(e) { alert("Xatolik yuz berdi. Backend ishlayotganini tekshiring."); }
+                
+                if (response.ok) {
+                    alert(`✅ "${eng}" muvaffaqiyatli qo'shildi!`);
+                    document.getElementById('eng-input').value = '';
+                    document.getElementById('uz-input').value = '';
+                } else {
+                    alert("Xatolik yuz berdi. Backend javob bermadi.");
+                }
+            } catch(e) { 
+                alert("Xatolik yuz berdi. Tarmoqni yoki backendni tekshiring."); 
+            }
         }
 
+        // So'z qo'shishni tugatish va Yodlash bo'limiga qaytish
         function finishAddingWords() {
-            alert(`✅ "${currentSetName}" seti saqlandi!`);
-            switchTab(0);
-            loadSets();
+            alert(`✅ "${currentSetName || 'Umumiy'}" seti saqlandi!`);
+            
+            // Inputlarni va keshni tozalash
+            document.getElementById('set-name').value = '';
+            document.getElementById('eng-input').value = '';
+            document.getElementById('uz-input').value = '';
+            document.getElementById('current-set-display').textContent = '';
+            currentSetName = "";
+
+            switchTab(0); // Yodlash bo'limiga o'tish
+            loadSets();   // Ro'yxatni yangitdan yuklash va ekranda ko'rsatish
         }
 
+        // Tablarni almashtirish logikasi (Navigatsiya)
         function switchTab(n) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(['tab-flash','tab-add'][n]).classList.remove('hidden');
+            const tabs = document.querySelectorAll('.tab-content');
+            const navItems = document.querySelectorAll('.nav-item');
+            
+            tabs.forEach(el => el.classList.add('hidden'));
+            tabs[n].classList.remove('hidden');
+
+            // Navigatsiya tugmalari rangini yangilash
+            navItems.forEach((item, index) => {
+                if(index === n) {
+                    item.classList.add('text-cyan-400');
+                    item.classList.remove('text-slate-400');
+                } else {
+                    item.classList.remove('text-cyan-400');
+                    item.classList.add('text-slate-400');
+                }
+            });
+
+            if (n === 0) {
+                loadSets(); // Yodlash bo'limiga o'tganda ro'yxatni avtomat yangilash
+            }
         }
 
+        // Ilk yuklanish jarayoni
         window.onload = () => {
             loadSets();
             if (Telegram.WebApp.initDataUnsafe?.user) {
                 document.getElementById('username').textContent = Telegram.WebApp.initDataUnsafe.user.first_name;
             }
+            Telegram.WebApp.ready();
+            Telegram.WebApp.expand();
         };
     </script>
 </body>
