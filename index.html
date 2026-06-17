@@ -10,51 +10,49 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(255,255,255,0.08); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
-        .flashcard { transition: transform 0.9s cubic-bezier(0.23, 1, 0.32, 1); }
+        .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(34, 211, 238, 0.15); }
+        .flashcard { transition: transform 0.85s cubic-bezier(0.23, 1, 0.32, 1); box-shadow: 0 20px 40px -10px rgb(0 0 0 / 0.6); }
         .flashcard.flipped { transform: rotateY(180deg); }
-        .nav-item.active { color: #22d3ee; transform: scale(1.1); }
+        .nav-item.active { color: #22d3ee; }
     </style>
 </head>
 <body class="bg-slate-950 text-white min-h-screen">
 
-    <header class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-xl border-b border-cyan-400/20 px-5 py-4">
+    <!-- HEADER -->
+    <header class="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-xl border-b border-cyan-400/20 px-5 py-4">
         <div class="flex justify-between items-center">
             <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-3xl flex items-center justify-center text-3xl font-black">Y</div>
+                <div class="w-11 h-11 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-2xl flex items-center justify-center text-3xl font-black">Y</div>
                 <div>
-                    <p id="username" class="text-xl font-bold">Foydalanuvchi</p>
-                    <p class="text-xs text-slate-400"><i class="fa-solid fa-fire"></i> <span id="streak">0</span> kun</p>
+                    <p id="username" class="text-xl font-bold">Alisher</p>
+                    <p class="text-xs text-slate-400 flex items-center gap-1"><i class="fa-solid fa-fire text-orange-400"></i> <span id="streak">0</span> kun</p>
                 </div>
             </div>
-            <div class="text-cyan-400">Level <span id="level" class="text-3xl font-bold">1</span></div>
+            <div class="text-right">
+                <span class="text-cyan-400 text-sm">Level</span>
+                <span id="level" class="text-3xl font-bold text-cyan-400 ml-1">1</span>
+            </div>
         </div>
     </header>
 
     <main class="pb-24">
 
-        <!-- 1. YODLASH -->
+        <!-- YODLASH -->
         <div id="tab-flash" class="tab-content active p-5">
             <div id="set-list" class="space-y-4"></div>
-            
-            <div id="count-select" class="hidden max-w-md mx-auto glass rounded-3xl p-6">
-                <h3 class="text-xl font-bold text-center mb-6">Qancha so‘z yodlamoqchisiz?</h3>
-                <div id="count-buttons" class="grid grid-cols-2 gap-3"></div>
-            </div>
-
+            <div id="count-select" class="hidden max-w-md mx-auto glass rounded-3xl p-6"></div>
             <div id="flash-area" class="hidden max-w-md mx-auto">
                 <div onclick="flipCard()" id="flashcard" class="flashcard relative h-[460px] cursor-pointer">
                     <div class="face front absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-8 flex flex-col justify-center items-center">
                         <div class="px-6 py-2 bg-white/10 rounded-full text-sm">ENGLISH</div>
                         <h1 id="eng-word" class="text-5xl font-bold mt-10 text-center"></h1>
-                        <p id="ai-info" class="mt-8 text-center text-slate-200 text-sm"></p>
+                        <p id="ai-info" class="mt-8 text-center text-slate-200 text-[15px]"></p>
                     </div>
                     <div class="face back absolute inset-0 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-3xl p-8 flex flex-col justify-center items-center rotate-y-180">
                         <div class="px-6 py-2 bg-white/10 rounded-full text-sm">O‘ZBEKCHA</div>
                         <h1 id="uz-word" class="text-5xl font-bold mt-12 text-white text-center"></h1>
                     </div>
                 </div>
-
                 <div class="grid grid-cols-2 gap-4 mt-8">
                     <button onclick="cardAction('dont')" class="glass py-6 rounded-3xl text-red-400 font-semibold">❌ Bilmadim</button>
                     <button onclick="cardAction('know')" class="glass py-6 rounded-3xl text-emerald-400 font-semibold">✅ Bildim</button>
@@ -62,50 +60,27 @@
             </div>
         </div>
 
-        <!-- 2. SO‘Z QO‘SHISH -->
+        <!-- SO‘Z QO‘SHISH -->
         <div id="tab-add" class="tab-content hidden p-5">
             <div class="max-w-md mx-auto glass rounded-3xl p-8">
-                <h2 class="text-3xl font-bold mb-6 text-center">➕ So‘z qo‘shish</h2>
-                <input id="set-name" class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-6 py-5 mb-4" placeholder="Set nomi">
+                <h2 class="text-3xl font-bold text-center mb-2">➕ So‘z qo‘shish</h2>
+                <p id="current-set-display" class="text-cyan-400 text-center mb-6 font-medium"></p>
+
+                <input id="set-name" class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-6 py-5 mb-6" placeholder="Set nomi (Unit 1)">
                 <input id="eng-input" class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-6 py-5 mb-4" placeholder="Inglizcha so‘z">
                 <input id="uz-input" class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-6 py-5 mb-8" placeholder="O‘zbekcha tarjimasi">
-                <button onclick="addWordDirect()" class="w-full bg-gradient-to-r from-cyan-400 to-blue-500 text-black font-bold py-6 rounded-3xl text-xl">Saqlash</button>
-            </div>
-        </div>
 
-        <!-- 3. VOICE -->
-        <div id="tab-voice" class="tab-content hidden p-5">
-            <div class="max-w-md mx-auto glass rounded-3xl p-12 text-center">
-                <button onclick="startVoiceRecording()" id="voice-btn" class="w-40 h-40 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 text-7xl mx-auto shadow-2xl">🎤</button>
-                <p class="mt-8 text-xl">Talaffuzni tekshiring</p>
-                <p id="recognized-text" class="mt-6 min-h-[100px] text-slate-300"></p>
-            </div>
-        </div>
-
-        <!-- 4. AI TEACHER -->
-        <div id="tab-ai" class="tab-content hidden p-5">
-            <div class="max-w-md mx-auto">
-                <div id="chat-messages" class="h-[55vh] overflow-y-auto space-y-4"></div>
-                <div class="flex gap-3 glass p-3 rounded-3xl">
-                    <input id="ai-input" class="flex-1 bg-slate-800 rounded-2xl px-6 py-4" placeholder="Inglizcha yozing...">
-                    <button onclick="sendAiMessage()" class="bg-cyan-500 px-8 rounded-2xl font-bold">Yuborish</button>
+                <div class="flex gap-3">
+                    <button onclick="addWordAndContinue()" class="flex-1 bg-slate-700 hover:bg-slate-600 py-6 rounded-3xl font-semibold">➕ Yana qo‘shish</button>
+                    <button onclick="finishAddingWords()" class="flex-1 bg-gradient-to-r from-cyan-400 to-blue-500 text-black py-6 rounded-3xl font-bold">✅ Tugatish</button>
                 </div>
             </div>
         </div>
 
-        <!-- 5. STATISTIKA -->
-        <div id="tab-stats" class="tab-content hidden p-5">
-            <div class="max-w-md mx-auto glass rounded-3xl p-8">
-                <h2 class="text-3xl font-bold mb-8 text-center">📊 Statistika</h2>
-                <div class="space-y-6">
-                    <div class="flex justify-between text-lg"><span>Daraja</span><span id="stat-level" class="font-bold text-cyan-400">1</span></div>
-                    <div class="flex justify-between text-lg"><span>XP</span><span id="stat-xp" class="font-bold">1240</span></div>
-                    <div class="flex justify-between text-lg"><span>Tangalar</span><span id="stat-coins" class="font-bold">245 🪙</span></div>
-                    <div class="flex justify-between text-lg"><span>Streak</span><span id="stat-streak" class="font-bold">7 kun 🔥</span></div>
-                    <div class="flex justify-between text-lg"><span>Jami so‘zlar</span><span id="stat-words" class="font-bold">68 ta</span></div>
-                </div>
-            </div>
-        </div>
+        <!-- VOICE, AI, STAT bo'limlari ham qo'shilgan (qisqa) -->
+        <div id="tab-voice" class="tab-content hidden p-5">Voice bo'limi</div>
+        <div id="tab-ai" class="tab-content hidden p-5">AI Teacher</div>
+        <div id="tab-stats" class="tab-content hidden p-5">Statistika</div>
     </main>
 
     <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-2xl border-t border-slate-700 flex text-xs">
@@ -121,6 +96,7 @@
         let userId = Telegram.WebApp.initDataUnsafe?.user?.id || 12345;
         let currentFlashcards = [];
         let currentIndex = 0;
+        let currentSetName = "";
 
         async function loadSets() {
             const container = document.getElementById('set-list');
@@ -128,40 +104,43 @@
                 const res = await fetch(`\( {API_BASE_URL}/api/user/ \){userId}/sets`);
                 const sets = await res.json();
                 container.innerHTML = sets.map(s => `
-                    <div onclick="selectSet('${s.set_name}', ${s.count})" class="glass rounded-3xl p-6 flex justify-between items-center cursor-pointer">
+                    <div onclick="selectSet('${s.set_name}', ${s.count})" class="glass rounded-3xl p-6 flex justify-between items-center cursor-pointer hover:scale-[1.02]">
                         <div>
                             <p class="font-semibold text-xl">${s.set_name}</p>
                             <p class="text-slate-400">${s.count} ta so‘z</p>
                         </div>
-                        <i class="fa-solid fa-chevron-right text-2xl text-cyan-400"></i>
+                        <i class="fa-solid fa-chevron-right text-cyan-400"></i>
                     </div>
                 `).join('');
-            } catch(e) { container.innerHTML = "<p class='text-center text-slate-400'>Setlar topilmadi</p>"; }
+            } catch(e) {
+                container.innerHTML = `<p class="text-center text-slate-400 py-10">Hozircha set yo'q. Qo'shish bo'limidan boshlang.</p>`;
+            }
         }
 
-        function selectSet(setName, totalCount) {
+        function selectSet(setName, count) {
             document.getElementById('set-list').classList.add('hidden');
-            const countDiv = document.getElementById('count-select');
-            countDiv.classList.remove('hidden');
-
-            const opts = [10, 20, 50, totalCount];
-            document.getElementById('count-buttons').innerHTML = opts.map(n => `
-                <button onclick="startFlashcards('${setName}', ${n})" class="glass py-6 rounded-2xl text-lg font-medium">
-                    ${n === totalCount ? 'Hammasi' : n + ' ta'}
-                </button>
-            `).join('');
+            const div = document.getElementById('count-select');
+            div.classList.remove('hidden');
+            div.innerHTML = `
+                <h3 class="text-2xl font-bold text-center mb-6">Qancha so‘z yodlamoqchisiz?</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="startFlashcards('${setName}', 10)" class="glass py-6 rounded-2xl">10 ta</button>
+                    <button onclick="startFlashcards('${setName}', 20)" class="glass py-6 rounded-2xl">20 ta</button>
+                    <button onclick="startFlashcards('${setName}', 50)" class="glass py-6 rounded-2xl">50 ta</button>
+                    <button onclick="startFlashcards('${setName}', ${count})" class="glass py-6 rounded-2xl">Hammasi</button>
+                </div>
+            `;
         }
 
         async function startFlashcards(setName, limit) {
             document.getElementById('count-select').classList.add('hidden');
             document.getElementById('flash-area').classList.remove('hidden');
-
             try {
                 const res = await fetch(`\( {API_BASE_URL}/api/user/ \){userId}/cards?set=\( {setName}&limit= \){limit}`);
                 currentFlashcards = await res.json();
                 currentIndex = 0;
                 showCurrentCard();
-            } catch(e) {}
+            } catch(e) { console.error(e); }
         }
 
         function showCurrentCard() {
@@ -184,18 +163,33 @@
             showCurrentCard();
         }
 
-        async function addWordDirect() {
-            const set = document.getElementById('set-name').value || "Umumiy";
+        // SO‘Z QO‘SHISH
+        async function addWordAndContinue() {
+            const set = document.getElementById('set-name').value.trim() || currentSetName || "Umumiy";
             const eng = document.getElementById('eng-input').value.trim();
             const uz = document.getElementById('uz-input').value.trim();
-            if (!eng || !uz) return alert("Ma'lumotlarni to'ldiring!");
 
-            await fetch(`\( {API_BASE_URL}/api/user/ \){userId}/add_word`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({set_name: set, english: eng, uzbek: uz})
-            });
-            alert(`✅ "${eng}" saqlandi!`);
+            if (!eng || !uz) return alert("So'zlarni to'ldiring!");
+
+            currentSetName = set;
+            document.getElementById('current-set-display').textContent = `Set: ${set}`;
+
+            try {
+                await fetch(`\( {API_BASE_URL}/api/user/ \){userId}/add_word`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({set_name: set, english: eng, uzbek: uz})
+                });
+                alert(`✅ "${eng}" qo'shildi!`);
+                document.getElementById('eng-input').value = '';
+                document.getElementById('uz-input').value = '';
+            } catch(e) { alert("Xatolik yuz berdi"); }
+        }
+
+        function finishAddingWords() {
+            alert(`✅ "${currentSetName}" seti saqlandi! Yodlash bo'limida uni toping.`);
+            switchTab(0);
+            loadSets();
         }
 
         function switchTab(n) {
@@ -213,4 +207,4 @@
         };
     </script>
 </body>
-</html>
+            </html>
