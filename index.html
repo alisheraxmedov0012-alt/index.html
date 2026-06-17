@@ -5,566 +5,191 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>YodlaCards AI</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        :root {
-            --bg-color: var(--tg-theme-bg-color, #0f172a);
-            --text-color: var(--tg-theme-text-color, #f8fafc);
-            --accent-color: var(--tg-theme-button-color, #38bdf8);
-            --button-text: var(--tg-theme-button-text-color, #ffffff);
-            --hint-color: var(--tg-theme-hint-color, #94a3b8);
-            --secondary-bg: var(--tg-theme-secondary-bg-color, rgba(255, 255, 255, 0.03));
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        body {
-            font-family: '-apple-system', BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            overflow: hidden;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .app-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px;
-            background: var(--secondary-bg);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .user-badge {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .user-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: var(--accent-color);
-            color: var(--button-text);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
-        }
-
-        .tab-screen {
-            display: none;
-            flex: 1;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            overflow-y: auto;
-        }
-
-        .tab-screen.active-screen {
-            display: flex;
-        }
-
-        .card-container {
-            width: 100%;
-            max-width: 340px;
-            height: 380px;
-            position: relative;
-            perspective: 1000px;
-        }
-
-        .flashcard {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            transform-style: preserve-3d;
-            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
-            cursor: pointer;
-        }
-
-        .flashcard.flipped {
-            transform: rotateY(180deg);
-        }
-
-        .card-face {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            border-radius: 24px;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            text-align: center;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .card-front {
-            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
-            backdrop-filter: blur(20px);
-        }
-
-        .card-back {
-            background: linear-gradient(135deg, rgba(56, 189, 248, 0.1) 0%, rgba(56, 189, 248, 0.02) 100%);
-            backdrop-filter: blur(20px);
-            transform: rotateY(180deg);
-        }
-
-        .card-tag {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--accent-color);
-            background: rgba(56, 189, 248, 0.1);
-            padding: 4px 12px;
-            border-radius: 20px;
-        }
-
-        .word-title { font-size: 30px; font-weight: 700; word-break: break-word; }
-        .word-definition { font-size: 14px; color: var(--hint-color); line-height: 1.5; max-height: 120px; overflow-y: auto; }
-        .word-translation { font-size: 26px; font-weight: 600; color: #10b981; word-break: break-word; }
-
-        .action-buttons {
-            display: flex;
-            gap: 16px;
-            margin-top: 24px;
-            width: 100%;
-            max-width: 340px;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 16px;
-            border: none;
-            border-radius: 16px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: transform 0.1s;
-        }
-        .btn:active { transform: scale(0.95); }
-        .btn-dont { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
-        .btn-know { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
-
-        .quiz-box { width: 100%; max-width: 340px; text-align: center; }
-        .quiz-question { font-size: 18px; margin-bottom: 20px; color: var(--hint-color); }
-        .quiz-word { font-size: 28px; color: var(--text-color); margin-bottom: 30px; font-weight: bold; }
-        .quiz-options { display: flex; flex-direction: column; gap: 12px; width: 100%; }
-        .option-btn {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
-            color: var(--text-color);
-            padding: 16px;
-            border-radius: 14px;
-            font-size: 16px;
-            text-align: left;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .option-btn:active { background: rgba(255,255,255,0.1); }
-        .option-btn.correct { background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #10b981; }
-        .option-btn.wrong { background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #ef4444; }
-
-        .chat-container {
-            width: 100%;
-            max-width: 400px;
-            height: 70vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .message {
-            max-width: 80%;
-            padding: 12px 16px;
-            border-radius: 18px;
-            font-size: 14px;
-            line-height: 1.4;
-            word-break: break-word;
-        }
-        .msg-ai { background: rgba(255,255,255,0.06); align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid rgba(255,255,255,0.05); }
-        .msg-user { background: var(--accent-color); color: var(--button-text); align-self: flex-end; border-bottom-right-radius: 4px; }
-        
-        .chat-input-area {
-            display: flex;
-            gap: 8px;
-            padding: 10px 0;
-        }
-        .chat-input {
-            flex: 1;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 12px;
-            color: var(--text-color);
-            outline: none;
-        }
-        .btn-send {
-            background: var(--accent-color);
-            color: var(--button-text);
-            border: none;
-            padding: 0 16px;
-            border-radius: 12px;
-            cursor: pointer;
-        }
-
-        .stats-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 20px;
-            padding: 20px;
-            width: 100%;
-            max-width: 340px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-        .stat-row { display: flex; justify-content: space-between; align-items: center; }
-        .progress-bar-bg { width: 100%; background: rgba(255,255,255,0.08); height: 8px; border-radius: 4px; margin-top: 6px; overflow: hidden; }
-        .progress-bar-fill { height: 100%; background: var(--accent-color); width: 0%; transition: width 0.5s; }
-
-        .nav-tabs {
-            display: flex;
-            background: rgba(255, 255, 255, 0.02);
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 10px 0;
-            padding-bottom: calc(10px + env(safe-area-inset-bottom));
-        }
-        .tab-item {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            font-size: 11px;
-            color: var(--hint-color);
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-        .tab-item.active { color: var(--accent-color); }
-        .tab-item i { font-size: 20px; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(34, 211, 238, 0.2); }
+        .flashcard { transition: transform 0.85s cubic-bezier(0.23, 1, 0.32, 1); }
+        .flashcard.flipped { transform: rotateY(180deg); }
     </style>
 </head>
-<body>
+<body class="bg-slate-950 text-white min-h-screen">
 
-    <header class="app-header">
-        <div class="user-badge">
-            <div class="user-avatar" id="user-avatar">U</div>
-            <span id="user-name">Foydalanuvchi</span>
-        </div>
-        <div>
-            <span style="color: #eab308; font-weight: 600;"><i class="fa-solid fa-fire"></i> <span id="streak-val">0</span> kun</span>
+    <header class="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-xl border-b border-cyan-400/20 px-5 py-4">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-3xl flex items-center justify-center text-3xl font-black">Y</div>
+                <div>
+                    <p id="username" class="text-xl font-bold">Alisher</p>
+                    <p class="text-xs text-slate-400"><i class="fa-solid fa-fire"></i> <span id="streak">0</span> kun</p>
+                </div>
+            </div>
+            <div class="text-cyan-400">Level <span id="level" class="text-3xl font-bold">1</span></div>
         </div>
     </header>
 
-    <main id="screen-flashcards" class="tab-screen active-screen">
-        <div class="card-container">
-            <div class="flashcard" id="active-card" onclick="flipCard()">
-                <div class="card-face card-front">
-                    <span class="card-tag">English</span>
-                    <h2 class="word-title" id="card-word">Resilience</h2>
-                    <p class="word-definition" id="card-def">The capacity to recover quickly from difficulties.</p>
-                    <span style="font-size: 12px; color: var(--hint-color);"><i class="fa-solid fa-rotate"></i> Tarjimani ko'rish uchun bosing</span>
+    <main class="pb-24">
+
+        <!-- YODLASH -->
+        <div id="tab-flash" class="tab-content active p-5">
+            <div id="set-list" class="space-y-4"></div>
+            <div id="count-select" class="hidden max-w-md mx-auto glass rounded-3xl p-6"></div>
+            <div id="flash-area" class="hidden max-w-md mx-auto">
+                <div onclick="flipCard()" id="flashcard" class="flashcard relative h-[460px] cursor-pointer">
+                    <div class="face front absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-8 flex flex-col justify-center items-center">
+                        <div class="px-6 py-2 bg-white/10 rounded-full text-sm">ENGLISH</div>
+                        <h1 id="eng-word" class="text-5xl font-bold mt-10 text-center"></h1>
+                        <p id="ai-info" class="mt-8 text-center text-slate-200"></p>
+                    </div>
+                    <div class="face back absolute inset-0 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-3xl p-8 flex flex-col justify-center items-center rotate-y-180">
+                        <div class="px-6 py-2 bg-white/10 rounded-full text-sm">O‘ZBEKCHA</div>
+                        <h1 id="uz-word" class="text-5xl font-bold mt-12 text-white text-center"></h1>
+                    </div>
                 </div>
-                <div class="card-face card-back">
-                    <span class="card-tag">O'zbekcha</span>
-                    <h2 class="word-translation" id="card-trans">Matonat / Chidamlilik</h2>
-                    <p style="font-size: 13px; color: var(--hint-color);">Eslab qola oldingizmi?</p>
+                <div class="grid grid-cols-2 gap-4 mt-8">
+                    <button onclick="cardAction('dont')" class="glass py-6 rounded-3xl text-red-400 font-semibold">❌ Bilmadim</button>
+                    <button onclick="cardAction('know')" class="glass py-6 rounded-3xl text-emerald-400 font-semibold">✅ Bildim</button>
                 </div>
             </div>
         </div>
-        <div class="action-buttons">
-            <button class="btn btn-dont" onclick="handleCardAction('dont')">
-                <i class="fa-solid fa-xmark"></i> Bilmadim
-            </button>
-            <button class="btn btn-know" onclick="handleCardAction('know')">
-                <i class="fa-solid fa-check"></i> Bildim
-            </button>
-        </div>
-    </main>
 
-    <main id="screen-quiz" class="tab-screen">
-        <div class="quiz-box">
-            <p class="quiz-question">Ushbu so'zning to'g'ri tarjimasini toping:</p>
-            <div class="quiz-word" id="quiz-question-word">Resilience</div>
-            <div class="quiz-options" id="quiz-options-container"></div>
-        </div>
-    </main>
+        <!-- SO‘Z QO‘SHISH -->
+        <div id="tab-add" class="tab-content hidden p-5">
+            <div class="max-w-md mx-auto glass rounded-3xl p-8">
+                <h2 class="text-3xl font-bold text-center mb-2">➕ So‘z qo‘shish</h2>
+                <p id="current-set-display" class="text-cyan-400 text-center mb-6 font-medium"></p>
 
-    <main id="screen-ai" class="tab-screen">
-        <div class="chat-container">
-            <div class="chat-messages" id="chat-messages-box">
-                <div class="message msg-ai">Hello! I am your AI Teacher. Write anything in English, and I will correct your mistakes and chat with you! 🧠</div>
-            </div>
-            <div class="chat-input-area">
-                <input type="text" class="chat-input" id="chat-input-field" placeholder="Inglizcha biror narsa yozing...">
-                <button class="btn-send" onclick="sendAiMessage()"><i class="fa-solid fa-paper-plane"></i></button>
-            </div>
-        </div>
-    </main>
+                <input id="set-name" class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-6 py-5 mb-6" placeholder="Set nomi">
+                <input id="eng-input" class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-6 py-5 mb-4" placeholder="Inglizcha so‘z">
+                <input id="uz-input" class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-6 py-5 mb-8" placeholder="O‘zbekcha tarjimasi">
 
-    <main id="screen-stats" class="tab-screen">
-        <div class="stats-card">
-            <h3>Sizning Ko'rsatkichlaringiz</h3>
-            <hr style="opacity: 0.1">
-            <div class="stat-row">
-                <span><i class="fa-solid fa-trophy" style="color:#eab308"></i> Daraja (Level):</span>
-                <strong id="stats-level">1-lvl</strong>
-            </div>
-            <div>
-                <div class="stat-row" style="font-size: 13px; color: var(--hint-color);">
-                    <span>Progress: <span id="stats-xp">0%</span></span>
-                    <span>Keyingi Level</span>
+                <div class="flex gap-3">
+                    <button onclick="addWordAndContinue()" class="flex-1 bg-slate-700 py-6 rounded-3xl font-semibold">➕ Yana qo‘shish</button>
+                    <button onclick="finishAddingWords()" class="flex-1 bg-gradient-to-r from-cyan-400 to-blue-500 text-black py-6 rounded-3xl font-bold">✅ Tugatish</button>
                 </div>
-                <div class="progress-bar-bg"><div class="progress-bar-fill" id="xp-progress-fill"></div></div>
-            </div>
-            <div class="stat-row">
-                <span><i class="fa-solid fa-coins" style="color:#eab308"></i> Tangalar:</span>
-                <strong id="stats-coins">0 coins</strong>
-            </div>
-            <div class="stat-row">
-                <span><i class="fa-solid fa-book"></i> Jami so'zlar:</span>
-                <strong id="stats-total-words">0 ta</strong>
             </div>
         </div>
     </main>
 
-    <nav class="nav-tabs">
-        <div class="tab-item active" onclick="switchTab(this, 'screen-flashcards')">
-            <i class="fa-solid fa-layer-group"></i>
-            <span>Yodlash</span>
-        </div>
-        <div class="tab-item" onclick="switchTab(this, 'screen-quiz'); loadQuizData();">
-            <i class="fa-solid fa-brain"></i>
-            <span>Test</span>
-        </div>
-        <div class="tab-item" onclick="switchTab(this, 'screen-ai')">
-            <i class="fa-solid fa-robot"></i>
-            <span>AI Teacher</span>
-        </div>
-        <div class="tab-item" onclick="switchTab(this, 'screen-stats'); loadUserStats();">
-            <i class="fa-solid fa-chart-simple"></i>
-            <span>Statistika</span>
-        </div>
+    <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-2xl border-t border-slate-700 flex text-xs">
+        <div onclick="switchTab(0)" class="flex-1 py-4 flex flex-col items-center nav-item active"><i class="fa-solid fa-layer-group text-2xl"></i><span>Yodlash</span></div>
+        <div onclick="switchTab(1)" class="flex-1 py-4 flex flex-col items-center nav-item"><i class="fa-solid fa-plus text-2xl"></i><span>Qo‘shish</span></div>
     </nav>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-
-        const API_BASE_URL = "https://yodlacards-ai-bot-production.up.railway.app"; 
-        
-        let userId = 12345; 
-        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-            const user = tg.initDataUnsafe.user;
-            userId = user.id;
-            document.getElementById('user-name').innerText = user.first_name || "Foydalanuvchi";
-            document.getElementById('user-avatar').innerText = (user.first_name || "U").charAt(0).toUpperCase();
-        }
-
-        let flashcards = [
-            {id: 0, english: "Resilience", uzbek: "Matonat", ai_info: "The capacity to recover quickly from difficulties."},
-            {id: 1, english: "Ubiquitous", uzbek: "Hamma yerda mavjud", ai_info: "Present, appearing, or found everywhere."}
-        ];
+        const API_BASE_URL = "https://yodlacards-ai-bot-production.up.railway.app";
+        let userId = Telegram.WebApp.initDataUnsafe?.user?.id || 12345;
+        let currentFlashcards = [];
         let currentIndex = 0;
+        let currentSetName = "";
 
-        window.onload = async function() {
-            await loadInitialData();
-            await loadUserStats();
-        };
-
-        async function loadInitialData() {
+        async function loadSets() {
+            const container = document.getElementById('set-list');
             try {
-                const response = await fetch(`${API_BASE_URL}/api/user/${userId}/cards`);
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data && data.length > 0) {
-                        flashcards = data;
-                        currentIndex = 0;
-                    }
-                }
-                updateCardUI();
-            } catch (error) {
-                console.log("Xato:", error);
-                updateCardUI();
+                const res = await fetch(`\( {API_BASE_URL}/api/user/ \){userId}/sets`);
+                const sets = await res.json();
+                if (sets.length === 0) throw new Error();
+                container.innerHTML = sets.map(s => `
+                    <div onclick="selectSet('${s.set_name}', ${s.count})" class="glass rounded-3xl p-6 flex justify-between items-center cursor-pointer">
+                        <div>
+                            <p class="font-semibold text-xl">${s.set_name}</p>
+                            <p class="text-slate-400">${s.count} ta so‘z</p>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-cyan-400"></i>
+                    </div>
+                `).join('');
+            } catch(e) {
+                container.innerHTML = `<p class="text-center text-slate-400 py-10">Hozircha set yo'q. "Qo‘shish" bo‘limidan so‘z qo‘shing.</p>`;
             }
         }
 
-        function updateCardUI() {
-            if (flashcards[currentIndex]) {
-                document.getElementById('card-word').innerText = flashcards[currentIndex].english || "";
-                document.getElementById('card-def').innerText = flashcards[currentIndex].ai_info || "";
-                document.getElementById('card-trans').innerText = flashcards[currentIndex].uzbek || "";
-            }
+        function selectSet(setName, count) {
+            document.getElementById('set-list').classList.add('hidden');
+            const div = document.getElementById('count-select');
+            div.classList.remove('hidden');
+            div.innerHTML = `
+                <h3 class="text-2xl font-bold text-center mb-6">Qancha so‘z yodlamoqchisiz?</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="startFlashcards('${setName}', 10)" class="glass py-6 rounded-2xl">10 ta</button>
+                    <button onclick="startFlashcards('${setName}', 20)" class="glass py-6 rounded-2xl">20 ta</button>
+                    <button onclick="startFlashcards('${setName}', 50)" class="glass py-6 rounded-2xl">50 ta</button>
+                    <button onclick="startFlashcards('${setName}', ${count})" class="glass py-6 rounded-2xl">Hammasi</button>
+                </div>
+            `;
         }
 
-        function switchTab(tabElement, screenId) {
-            tg.HapticFeedback.impactOccurred('light');
-            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-screen').forEach(s => s.classList.remove('active-screen'));
-            
-            tabElement.classList.add('active');
-            document.getElementById(screenId).classList.add('active-screen');
+        async function startFlashcards(setName, limit) {
+            document.getElementById('count-select').classList.add('hidden');
+            document.getElementById('flash-area').classList.remove('hidden');
+            try {
+                const res = await fetch(`\( {API_BASE_URL}/api/user/ \){userId}/cards?set=\( {setName}&limit= \){limit}`);
+                currentFlashcards = await res.json();
+                currentIndex = 0;
+                showCurrentCard();
+            } catch(e) { console.error(e); }
         }
 
-        function flipCard() {
-            document.getElementById('active-card').classList.toggle('flipped');
-            tg.HapticFeedback.impactOccurred('light');
+        function showCurrentCard() {
+            const c = currentFlashcards[currentIndex];
+            document.getElementById('eng-word').textContent = c.english;
+            document.getElementById('ai-info').textContent = c.ai_info || "";
+            document.getElementById('uz-word').textContent = c.uzbek;
         }
 
-        async function handleCardAction(action) {
-            if (action === 'know') {
-                tg.HapticFeedback.notificationOccurred('success');
-            } else {
-                tg.HapticFeedback.notificationOccurred('warning');
-            }
+        function flipCard() { document.getElementById('flashcard').classList.toggle('flipped'); }
 
-            const cardEl = document.getElementById('active-card');
-            cardEl.style.transform = action === 'know' ? 'translateX(200px) rotate(20deg)' : 'translateX(-200px) rotate(-20deg)';
-            cardEl.style.opacity = '0';
-
-            setTimeout(async () => {
-                const currentCardId = flashcards[currentIndex].id;
-                
-                try {
-                    await fetch(`${API_BASE_URL}/api/flashcard/action`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ user_id: userId, card_id: currentCardId, action: action })
-                    });
-                } catch (e) {
-                    console.log(e);
-                }
-
-                currentIndex = (currentIndex + 1) % flashcards.length;
-                updateCardUI();
-                
-                cardEl.classList.remove('flipped');
-                cardEl.style.transform = 'none';
-                cardEl.style.opacity = '1';
-            }, 300);
-        }
-
-        let currentQuizCorrect = "";
-        function loadQuizData() {
-            if (!flashcards || flashcards.length === 0) return;
-            
-            const correctWord = flashcards[Math.floor(Math.random() * flashcards.length)];
-            currentQuizCorrect = correctWord.uzbek;
-            
-            document.getElementById('quiz-question-word').innerText = correctWord.english;
-            
-            let options = [correctWord.uzbek];
-            flashcards.forEach(w => {
-                if(w.uzbek !== correctWord.uzbek && options.length < 4) options.push(w.uzbek);
+        async function cardAction(action) {
+            const c = currentFlashcards[currentIndex];
+            await fetch(`${API_BASE_URL}/api/flashcard/action`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({user_id: userId, card_id: c.id, action})
             });
-            
-            const fallbackOptions = ["Salom", "Kitob", "Rahmat", "Xayr"];
-            while(options.length < 4) {
-                let randomOpt = fallbackOptions[Math.floor(Math.random() * fallbackOptions.length)];
-                if(!options.includes(randomOpt)) options.push(randomOpt);
-            }
-            
-            options.sort(() => Math.random() - 0.5);
-
-            const container = document.getElementById('quiz-options-container');
-            container.innerHTML = "";
-            
-            options.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.innerText = opt;
-                btn.onclick = () => checkQuizAnswer(btn, opt);
-                container.appendChild(btn);
-            });
+            currentIndex = (currentIndex + 1) % currentFlashcards.length;
+            showCurrentCard();
         }
 
-        function checkQuizAnswer(btn, selected) {
-            if (selected === currentQuizCorrect) {
-                btn.classList.add('correct');
-                tg.HapticFeedback.notificationOccurred('success');
-            } else {
-                btn.classList.add('wrong');
-                tg.HapticFeedback.notificationOccurred('error');
-            }
-            setTimeout(loadQuizData, 1000);
-        }
+        async function addWordAndContinue() {
+            const set = document.getElementById('set-name').value.trim() || currentSetName || "Umumiy";
+            const eng = document.getElementById('eng-input').value.trim();
+            const uz = document.getElementById('uz-input').value.trim();
 
-        async function sendAiMessage() {
-            const input = document.getElementById('chat-input-field');
-            const text = input.value.trim();
-            if (!text) return;
+            if (!eng || !uz) return alert("So'zlarni to'ldiring!");
 
-            appendMessage(text, 'msg-user');
-            input.value = '';
+            currentSetName = set;
+            document.getElementById('current-set-display').textContent = `Set: ${set}`;
 
             try {
-                const response = await fetch(`${API_BASE_URL}/api/ai/chat`, {
+                await fetch(`\( {API_BASE_URL}/api/user/ \){userId}/add_word`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ text: text })
+                    body: JSON.stringify({set_name: set, english: eng, uzbek: uz})
                 });
-                const data = await response.json();
-                appendMessage(data.reply || "Xatolik yuz berdi.", 'msg-ai');
-            } catch (error) {
-                appendMessage("Serverga ulanib bo'lmadi.", 'msg-ai');
-            }
+                alert(`✅ "${eng}" qo'shildi!`);
+                document.getElementById('eng-input').value = '';
+                document.getElementById('uz-input').value = '';
+            } catch(e) { alert("Xatolik yuz berdi. Backend ishlayotganini tekshiring."); }
         }
 
-        function appendMessage(text, className) {
-            const box = document.getElementById('chat-messages-box');
-            const msg = document.createElement('div');
-            msg.className = `message ${className}`;
-            msg.innerText = text;
-            box.appendChild(msg);
-            box.scrollTop = box.scrollHeight;
+        function finishAddingWords() {
+            alert(`✅ "${currentSetName}" seti saqlandi!`);
+            switchTab(0);
+            loadSets();
         }
 
-        async function loadUserStats() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/user/${userId}/stats`);
-                if (response.ok) {
-                    const data = await response.json();
-                    document.getElementById('stats-level').innerText = `${data.level}-lvl`;
-                    document.getElementById('stats-total-words').innerText = `${data.total_words} ta`;
-                    document.getElementById('streak-val').innerText = data.streak;
-                    
-                    const percent = data.xp_percent || 0;
-                    document.getElementById('stats-xp').innerText = `${percent}%`;
-                    document.getElementById('xp-progress-fill').style.width = `${percent}%`;
-                }
-            } catch (error) {
-                console.log("Statistika yuklanmadi:", error);
-            }
+        function switchTab(n) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(['tab-flash','tab-add'][n]).classList.remove('hidden');
         }
+
+        window.onload = () => {
+            loadSets();
+            if (Telegram.WebApp.initDataUnsafe?.user) {
+                document.getElementById('username').textContent = Telegram.WebApp.initDataUnsafe.user.first_name;
+            }
+        };
     </script>
 </body>
 </html>
